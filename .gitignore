@@ -1,0 +1,12 @@
+# Dependências (o app não tem, mas por segurança)
+node_modules/
+
+# Artefatos de teste E2E (gerados a cada execução)
+_e2e.html
+
+# SO / editores
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

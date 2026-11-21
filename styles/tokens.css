@@ -1,0 +1,112 @@
+/* Tokens do design system Fizapp traduzidos para custom properties CSS.
+   Temas: normal (padrão), night (noturna), pool (beira de piscina). */
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue-soft: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-400: #60a5fa;
+
+  --bg: #f9fafb;
+  --surface: #fff;
+  --surface-2: #f3f4f6;
+  --text: #1f2937;
+  --text-strong: #111827;
+  --muted: #4b5563;
+  --border: #e5e7eb;
+
+  --success: #15803d;
+  --success-soft: #dcfce7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+
+  --radius-card: 12px;
+  --radius-btn: 8px;
+  --touch: 48px;
+  --clock-size: 2.5rem;
+  --master-size: 3.5rem;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+  --row-shadow: none;
+  --selected-ring: 0 0 0 3px var(--blue-100);
+  --motion: 1;
+}
+
+[data-theme="night"] {
+  color-scheme: dark;
+  --blue: #3b82f6;
+  --blue-hover: #60a5fa;
+  --blue-soft: #1e3a8a;
+  --blue-100: #1e40af;
+  --blue-400: #93c5fd;
+
+  --bg: #030712;
+  --surface: #111827;
+  --surface-2: #1f2937;
+  --text: #f3f4f6;
+  --text-strong: #f9fafb;
+  --muted: #d1d5db;
+  --border: #374151;
+
+  --success: #4ade80;
+  --success-soft: #052e16;
+  --danger: #f87171;
+  --danger-soft: #450a0a;
+  --warning: #fbbf24;
+  --warning-soft: #451a03;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --selected-ring: 0 0 0 3px rgb(96 165 250 / 0.45);
+}
+
+[data-theme="pool"] {
+  color-scheme: light;
+  --blue: #1d4ed8;
+  --blue-hover: #1e3a8a;
+  --blue-soft: #dbeafe;
+  --blue-100: #bfdbfe;
+  --blue-400: #1d4ed8;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #eff6ff;
+  --text: #111827;
+  --text-strong: #000000;
+  --muted: #1f2937;
+  --border: #1f2937;
+
+  --success: #166534;
+  --success-soft: #dcfce7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --warning: #92400e;
+  --warning-soft: #fef3c7;
+
+  --radius-card: 8px;
+  --touch: 60px;
+  --clock-size: 3rem;
+  --master-size: 4.5rem;
+  --shadow-card: none;
+  --selected-ring: 0 0 0 3px #1d4ed8;
+  --motion: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0;
+  }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

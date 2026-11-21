@@ -1,0 +1,17 @@
+# Cloudflare Pages — CronoBase
+# Referência: https://developers.cloudflare.com/pages/platform/headers/
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=()
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache

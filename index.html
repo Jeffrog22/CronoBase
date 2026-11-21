@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="normal">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>CronoBase — Cronômetro de Treino</title>
+    <meta
+      name="description"
+      content="Cronômetro de treino Modo 2 (Tempo/Parcial) da Fizapp, com controle GameSir X5 Lite e três temas."
+    />
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/app.css" />
+  </head>
+  <body>
+    <!-- ======================= CONFIGURAÇÃO ======================= -->
+    <section id="screen-config" class="screen">
+      <header class="topbar">
+        <div class="brand">
+          <img src="icons/icon-192.png" alt="" class="brand-mark" />
+          <span class="brand-name">CronoBase</span>
+        </div>
+        <div class="topbar-actions">
+          <label class="theme-field">
+            <span class="theme-field-label">Tema</span>
+            <select id="themeSelect" class="select" aria-label="Selecionar tema"></select>
+          </label>
+          <button id="helpBtn" class="btn btn-ghost btn-square" aria-label="Abrir ajuda" title="Ajuda">?</button>
+        </div>
+      </header>
+
+      <main class="config-main">
+        <ol class="steps" id="stepPills" aria-label="Passos da configuração">
+          <li class="step-pill active" data-step="1"><span class="step-num">1</span> Sessão</li>
+          <li class="step-pill" data-step="2"><span class="step-num">2</span> Séries</li>
+          <li class="step-pill" data-step="3"><span class="step-num">3</span> Atletas</li>
+        </ol>
+
+        <!-- Passo 1 -->
+        <div class="card step-panel active" id="stepPanel1">
+          <h1 class="card-title">Dados da sessão</h1>
+          <label class="field">
+            <span class="field-label">Nome da sessão (opcional)</span>
+            <input type="text" id="cfgNome" class="input" placeholder="Ex.: Treino de quarta" maxlength="60" />
+          </label>
+          <label class="field">
+            <span class="field-label">Estilo</span>
+            <select id="cfgEstilo" class="select"></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Distância (m)</span>
+            <select id="cfgDistancia" class="select"></select>
+          </label>
+          <p class="hint" id="distHint">
+            Abaixo de 50 m o botão de split não registra parciais (comportamento do Modo 2).
+          </p>
+        </div>
+
+        <!-- Passo 2 -->
+        <div class="card step-panel" id="stepPanel2">
+          <h1 class="card-title">Séries e descanso</h1>
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label">Repetições</span>
+              <input type="number" id="cfgRepeticoes" class="input" min="1" max="20" step="1" />
+            </label>
+            <label class="field">
+              <span class="field-label">Descanso (s)</span>
+              <input type="number" id="cfgDescanso" class="input" min="0" max="600" step="1" />
+            </label>
+          </div>
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label">Séries</span>
+              <input type="number" id="cfgSeries" class="input" min="1" max="10" step="1" />
+            </label>
+            <label class="field">
+              <span class="field-label">Intervalo entre séries (s)</span>
+              <input type="number" id="cfgIntervalo" class="input" min="0" max="1800" step="1" />
+            </label>
+          </div>
+          <p class="hint">
+            Descanso e intervalo são medidos em relógio real (wall-clock): continuam corretos
+            mesmo com a aba em segundo plano.
+          </p>
+        </div>
+
+        <!-- Passo 3 -->
+        <div class="card step-panel" id="stepPanel3">
+          <h1 class="card-title">Atletas</h1>
+          <div class="field-row">
+            <label class="field field-grow">
+              <span class="field-label">Cadastro rápido de nome</span>
+              <input type="text" id="novoAtleta" class="input" placeholder="Nome do atleta" maxlength="40" />
+            </label>
+            <button id="addAtletaBtn" class="btn btn-secondary">Adicionar</button>
+          </div>
+          <h2 class="sub-title">Selecionados para o treino</h2>
+          <ul id="atletasList" class="atleta-list"></ul>
+          <p class="hint" id="atletasHint">Toque em um atleta para incluir ou remover da sessão.</p>
+        </div>
+
+        <nav class="config-nav">
+          <button id="prevStepBtn" class="btn btn-secondary" hidden>Voltar</button>
+          <button id="nextStepBtn" class="btn btn-primary">Avançar</button>
+          <button id="startWorkoutBtn" class="btn btn-primary btn-big" hidden>Iniciar treino</button>
+        </nav>
+      </main>
+
+      <footer class="config-footer">
+        <span id="savedCount" class="muted">0 sessões salvas</span>
+        <span class="footer-actions">
+          <button id="exportBtn" class="btn btn-ghost btn-sm">Exportar</button>
+          <button id="clearHistoryBtn" class="btn btn-ghost btn-sm">Limpar histórico</button>
+        </span>
+      </footer>
+    </section>
+
+    <!-- ======================= CRONÔMETRO ======================= -->
+    <section id="screen-chrono" class="screen" hidden>
+      <header class="chrono-header">
+        <div class="chrono-title">
+          <span id="chronoName" class="chrono-name">Treino</span>
+          <span id="chronoConfig" class="chrono-config muted"></span>
+        </div>
+        <div class="chrono-header-actions">
+          <span id="gpStatus" class="gp-badge gp-off" title="Status do controle GameSir">GameSir: —</span>
+          <button id="soundBtn" class="btn btn-ghost btn-square" aria-label="Alternar som" title="Som do alerta">🔔</button>
+          <select id="themeSelectChrono" class="select select-sm" aria-label="Selecionar tema"></select>
+          <button id="helpBtnChrono" class="btn btn-ghost btn-square" aria-label="Abrir ajuda" title="Ajuda">?</button>
+        </div>
+      </header>
+
+      <div class="chrono-displays">
+        <div class="display display-master">
+          <span class="display-label" id="masterLabel">Série · mestre</span>
+          <span class="display-value clock" id="masterDisplay">00:00:00</span>
+        </div>
+        <div class="display display-continuous">
+          <span class="display-label">Sessão contínua</span>
+          <span class="display-value clock display-value-sm" id="continuousDisplay">00:00:00</span>
+        </div>
+      </div>
+
+      <div id="chronoStateLine" class="state-line" aria-live="polite">Parado · toque em Iniciar</div>
+
+      <div class="chrono-controls">
+        <button id="startBtn" class="btn btn-primary btn-xl">Iniciar</button>
+        <button id="stopBtn" class="btn btn-danger btn-xl">Parar</button>
+        <button id="resetBtn" class="btn btn-secondary btn-xl">Zerar</button>
+        <button id="summaryBtn" class="btn btn-success btn-xl">Resumo</button>
+      </div>
+
+      <ul id="chronoList" class="raia-list" aria-label="Atletas"></ul>
+
+      <p class="chrono-hint muted">
+        LT = Iniciar/Split · RT = Parar · B = sair · X = resumo · Y = ajuda
+      </p>
+    </section>
+
+    <!-- ======================= RESUMO ======================= -->
+    <section id="screen-summary" class="screen" hidden>
+      <header class="topbar">
+        <div class="brand">
+          <img src="icons/icon-192.png" alt="" class="brand-mark" />
+          <span class="brand-name">Resumo da sessão</span>
+        </div>
+        <div class="topbar-actions">
+          <select id="themeSelectSummary" class="select select-sm" aria-label="Selecionar tema"></select>
+          <button id="helpBtnSummary" class="btn btn-ghost btn-square" aria-label="Abrir ajuda">?</button>
+        </div>
+      </header>
+
+      <main class="summary-main">
+        <div class="card">
+          <h1 class="card-title" id="summaryTitle">Tempos capturados</h1>
+          <p class="muted" id="summaryMeta"></p>
+          <ul id="summaryList" class="summary-list"></ul>
+          <p class="hint">
+            Salvar grava a sessão no armazenamento local deste aparelho. Descartar descarta
+            sem gravar nada.
+          </p>
+        </div>
+        <div class="summary-actions">
+          <button id="backToChronoBtn" class="btn btn-secondary">Voltar ao cronômetro</button>
+          <button id="discardBtn" class="btn btn-danger">Descartar</button>
+          <button id="saveSessionBtn" class="btn btn-success btn-big">Salvar</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- ======================= DIÁLOGOS ======================= -->
+    <dialog id="helpDialog" class="dialog" aria-labelledby="helpTitle">
+      <div class="dialog-header">
+        <h2 id="helpTitle" class="dialog-title">Controles — GameSir X5 Lite</h2>
+        <button id="helpCloseBtn" class="btn btn-ghost btn-square" aria-label="Fechar ajuda">✕</button>
+      </div>
+      <div class="dialog-body">
+        <div class="table-wrap">
+          <table class="gp-table" id="gpTable">
+            <thead>
+              <tr><th>Botão</th><th>Fora do cronômetro</th><th>No cronômetro</th><th>Em diálogo</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <h3 class="sub-title">Regras do cronômetro</h3>
+        <ul class="help-list">
+          <li><strong>LT</strong>: inicia o treino ou registra um Split. Distâncias abaixo de 50 m não registram parciais.</li>
+          <li><strong>RT</strong>: finaliza a repetição do atleta selecionado (tempo total) e inicia o descanso/intervalo.</li>
+          <li>A ordem passa automaticamente para o próximo atleta ativo (não concluído, não descansando).</li>
+          <li><strong>Home longo (≥700 ms)</strong> não tem ação neste app e nunca encerra a sessão.</li>
+          <li>Nenhum botão fecha ou destrói a sessão sem confirmação.</li>
+          <li>Teclado não dispara os mesmos atalhos — toque e controle não se duplicam.</li>
+        </ul>
+        <h3 class="sub-title">Status do controle</h3>
+        <p class="muted" id="gpDiag">Nenhum controle conectado.</p>
+        <p class="hint">
+          Dica: <code>window.gamepadDebug = true</code> no console do navegador ativa o log
+          de índices de botão para diagnóstico de mapeamentos não padrão.
+        </p>
+      </div>
+    </dialog>
+
+    <dialog id="confirmDialog" class="dialog dialog-confirm" aria-labelledby="confirmTitle">
+      <div class="dialog-body">
+        <h2 id="confirmTitle" class="dialog-title">Confirmar</h2>
+        <p id="confirmMessage" class="confirm-message"></p>
+        <div class="dialog-actions">
+          <button id="confirmCancelBtn" class="btn btn-secondary">Cancelar</button>
+          <button id="confirmOkBtn" class="btn btn-primary">Confirmar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <div id="updateBanner" class="update-banner" hidden>
+      <span>Nova versão disponível.</span>
+      <button id="updateBtn" class="btn btn-primary btn-sm">Atualizar agora</button>
+      <button id="updateDismissBtn" class="btn btn-ghost btn-sm">Depois</button>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
