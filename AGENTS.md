@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.3.1
+- **Versão atual:** v0.4.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -262,4 +262,34 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 38/38 E2E — verde (grid ativo vp=776x308, startBtn.top=0.0)
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Tag de versão discreta no top bar (v0.4.0)
+
+### O que foi feito
+- Adicionada constante `APP_VERSION = "0.3.1"` em `js/state.js` (fonte da verdade da versão da interface).
+- Corrigido `package.json` de `0.1.0` para `0.3.1` (alinhado ao CHANGELOG/AGENTS.md).
+- Tag de versão discreta (`v0.3.1`) ao lado do label "CronoBase" no top bar da tela de configuração (`index.html` + `styles/app.css` `.brand-version` + `js/ui.js` `brandVersion`).
+- Não foi adicionada versão ao cabeçalho do cronômetro (só top bar, conforme pedido do usuário).
+- Não foi adicionado relógio do sistema na status bar do modal (fantasia/alegoria da imagem modelo, conforme pedido do usuário).
+- CHANGELOG não atualizado (versão já refletida via tag git v0.4.0).
+
+### Decisões
+- Versão só no top bar da config, não no cabeçalho do modal do cronômetro.
+- `APP_VERSION` é constante estática entre releases; deve ser bumpada junto com a tag git a cada release.
+- Sem alteração no layout do modal do cronômetro além da tag de versão (o modelo fornecido é referência visual, não requisito de reescrita).
+
+### Arquivos
+- `package.json`
+- `js/state.js`
+- `js/ui.js`
+- `index.html`
+- `styles/app.css`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 38/38 E2E — verde
 - Não há backend (app 100% estática)
