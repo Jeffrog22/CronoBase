@@ -18,6 +18,43 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.7.0] - 22/11/2026
+### Added
+- **Menu kebab no lugar do 🔔** (row de controles): ícone de 3 pontos
+  abre um painel com **Alerta sonoro** (estado Ligado/Desligado) +
+  **Ajuda/controles** — libera espaço para a pílula GameSir (agora com
+  texto completo em paisagem, `max-width` 6.5rem → 9.5rem)
+- **Drag & drop com posição livre dos botões Iniciar/Parar**: arraste
+  (threshold 8px) move o par dentro do palco `.controls-center`;
+  coordenadas salvas em `cronobase.btnPos.v1` como fração da largura
+  (escala entre orientações) com clamp; vale ao reabrir o modal e a cada
+  resize. Arrastar cancela o long-press do Parar (não dispara Zerar por
+  acidente) e o click subsequente é engolido; tap normal segue intacto
+- Gap ~5cm entre Iniciar/Parar migrado de `margin` no botão para
+  `gap` do palco — sobrevive à inversão de ordem feita pelo drag
+
+### Changed
+- **Rodapé do modal removido** (hint `LT = Iniciar/Split…` + `?`): o
+  conteúdo vive na Ajuda (aberta pelo kebab ou pelo gamepad Y); a lista
+  de raias ocupa até a borda inferior (safe-area no `padding-bottom`)
+- **Card mestre menor e centralizado**: dígitos clamp
+  `2.6–4.2rem → 1.8–2.4rem` (2.1rem no paisagem), padding `0.4/0.7`,
+  `max-width` 22rem no retrato (centrado por `margin:0 auto` / grid
+  `1fr auto 1fr`)
+- **Texto do treino bem menor**: nome `1.15→0.9rem`, config `0.95→0.75rem`
+- **Card Sessão contínua menor**: padding `0.22rem`, dígitos
+  `1–1.35rem`, raio 14px
+- **Paisagem — 4 cards de aluno sem scroll**: state-line oculta (estado
+  segue nas tags), raias compactas em 1 linha (chips de parciais
+  escondidos — continuam no Resumo), fontes/padding reduzidos, handle
+  24px; E2E valida `scrollHeight ≤ clientHeight` com 4 atletas
+- `setSoundOn` atualiza ícone + rótulo de estado do item do menu
+  (não `textContent` no botão inteiro)
+
+### Fixed
+- Esc com o kebab aberto fecha **só o menu** (capture no keydown +
+  `preventDefault`) em vez de disparar a confirmação de sair do modal
+
 ## [v0.6.0] - 22/11/2026
 ### Changed
 - **Modal do cronômetro reestruturado conforme mockup do usuário** (ordem e

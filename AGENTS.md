@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Modal reestruturado conforme mockup (v0.6.0) -->
+﻿<!-- última-sessão: 22/11/2026 — Kebab menu, drag livre e 4 cards (v0.7.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.6.0
+- **Versão atual:** v0.7.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -379,4 +379,71 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + **39/39 E2E** — verde (novo check do `?`)
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Kebab menu, drag livre e 4 cards (v0.7.0)
+
+### O que foi feito
+- **Kebab substitui o 🔔** na row de controles: `#kebabBtn` (3 pontos via
+  `box-shadow`, `currentColor` p/ temas) + `#kebabPanel` com os itens
+  `#soundBtn` ("Alerta sonoro" + estado Ligado/Desligado) e
+  `#helpBtnChrono` ("Ajuda/controles") — IDs preservados, bindings de
+  `soundToggle`/`openHelp` intactos; `setSoundOn` agora atualiza
+  `.kebab-ico`/`.kebab-state` (nunca `textContent` no botão)
+- **Rodapé removido** (hint + `?`): grid de paisagem perde as áreas
+  `state`/`hint` → `controls/header/list`; `.raia-list` ganha
+  `padding-bottom` com safe-area; conteúdo do hint vive na Ajuda
+- **Dimensões**: card mestre clamp `1.8–2.4rem` (2.1rem em paisagem),
+  padding `0.4/0.7`, `max-width` 22rem no retrato (centrado — probe
+  confirmou 352px exatos no vp492); `.chrono-name` 0.9rem,
+  `.chrono-config` 0.75rem; contínuo com padding 0.22rem/raio 14;
+  pílula GameSir `max-width` 9.5rem em paisagem (texto completo)
+- **4 cards em paisagem**: state-line oculta, raias 1 linha
+  (`.raia-temps` escondido, meta inline com ellipsis, clock 1.05rem,
+  tag 0.6rem, handle 24px, padding 0.15rem) — E2E valida com 4 atletas:
+  `scroll=169 client=169`
+- **Drag&drop de posição livre** (Iniciar/Parar): threshold 8px em
+  pointer events (listeners em document, sem `setPointerCapture`),
+  congelamento do par **no início** do arraste (senão o outro botão
+  "pula" ao entrar no fluxo absolute), salva `cronobase.btnPos.v1`
+  (x em fração do palco + y em px) com clamp; `applyBtnPos()` roda em
+  `showScreen("chrono")` e no `resize`; `align-self:stretch` no palco
+  `free` (sem isso a altura colapsa e o y desloca); gap 5cm migrou de
+  `margin` no `#startBtn` para `gap` do `.controls-center` (ordem
+  independente); arraste cancela o long-press do Parar e engole o click
+  (`suppressClickUntil`)
+- **Esc do kebab**: keydown em capture com `preventDefault` — fecha só
+  o menu, nunca chega no `cancel` do `<dialog>` (exitChrono)
+- E2E: remove check do `?` (rodapé fora); +7 checks de kebab, +3 de
+  drag, +3 de 4 cards → **51 PASS**; `APP_VERSION`/`package.json` → 0.7.0
+
+### Decisões
+- Posição livre em **% do palco** (não px absolutos) + clamp — funciona
+  entre retrato/paisagem e diferentes larguras; usuário re-ajusta quando
+  quiser ("sempre que necessário")
+- Colisão de timing conhecida no screenshot: `startBtn.click()` dos
+  `setTimeout` de split borbulha até o listener de "click fora" e fecha
+  o kebab — **comportamento correto do app** (clique fora fecha); o shot
+  do kebab espera os splits terminarem
+- State-line oculta só no paisagem (escola aprovada p/ caber 4 cards);
+  retrato mantém
+- Raias compactas só no paisagem; retrato mantém 2 linhas + chips
+
+### Arquivos
+- `index.html`
+- `styles/app.css`
+- `js/ui.js`
+- `tests/e2e-checks.js`
+- `js/state.js`
+- `package.json`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + **51/51 E2E** — verde
+- Screenshots CDP (800×400 e 500×860): kebab aberto, 4 cards, sem
+  rodapé — batem com o pedido
 - Não há backend (app 100% estática)

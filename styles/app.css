@@ -462,7 +462,7 @@ input {
 }
 
 .chrono-name {
-  font-size: 1.15rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: var(--text-strong);
   white-space: nowrap;
@@ -471,7 +471,7 @@ input {
 }
 
 .chrono-config {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   color: #596474;
   margin-top: 2px;
 }
@@ -481,7 +481,7 @@ input {
 .display-master {
   order: 3;
   flex-basis: 100%;
-  max-width: 30rem;
+  max-width: 22rem;
   margin: 0 auto;
 }
 
@@ -547,12 +547,13 @@ input {
   color: var(--warning);
 }
 
-/* Cartões de tempo do modelo: borda 2px, raio 24px, padding generoso, sombra suave. */
+/* Cartões de tempo do modelo: borda 2px, raio 24px, sombra suave.
+   v0.7.0: padding reduzido (card mestre menor, centralizado). */
 .display {
   background: var(--surface);
   border: 2px solid var(--border);
   border-radius: 24px;
-  padding: 0.55rem 0.85rem;
+  padding: 0.4rem 0.7rem;
   display: flex;
   flex-direction: column;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.05);
@@ -562,22 +563,22 @@ input {
   background: var(--surface-2);
   border: 2px solid var(--border);
   border-radius: 24px;
-  padding: 0.55rem 0.85rem;
+  padding: 0.4rem 0.7rem;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.05);
 }
 
 /* Contínuo dentro da row de controles: compacto (kicker + dígitos menores). */
 .controls-right .display-continuous {
-  padding: 0.3rem 0.6rem;
-  border-radius: 16px;
+  padding: 0.22rem 0.55rem;
+  border-radius: 14px;
 }
 
 .controls-right .display-continuous .display-value-sm {
-  font-size: clamp(1.1rem, 3vw, 1.6rem);
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
 }
 
 .display-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -585,7 +586,7 @@ input {
 }
 
 .display-value {
-  font-size: clamp(2.6rem, 10vw, 4.2rem);
+  font-size: clamp(1.8rem, 6.5vw, 2.4rem);
   font-weight: 350;
   line-height: 1.04;
   letter-spacing: 0.04em;
@@ -632,6 +633,7 @@ input {
 }
 
 .chrono-controls {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -656,8 +658,9 @@ input {
 
 /* Zona central: Iniciar · Parar. flex-basis 0 preserva a quebra de linha
    em telas estreitas (o grupo da direita vai p/ 2ª linha sem desmontar
-   o par de botões). */
+   o par de botões). É também o PALCO do drag&drop de posição livre. */
 .controls-center {
+  position: relative;
   flex: 1 1 0;
   display: flex;
   align-items: center;
@@ -669,7 +672,34 @@ input {
   flex: 1 1 0;
 }
 
-/* Zona direita: sessão contínua + GameSir + som. */
+/* Modo posição livre (pref salvo em cronobase.btnPos.v1): botões fora do
+   fluxo, coordenadas inline em % do palco. align-self: stretch mantém o
+   palco com a altura da linha (senão ele colapsa p/ 0 e o y é todo
+   deslocado para baixo). */
+.controls-center.free {
+  align-self: stretch;
+}
+
+.controls-center.free .btn-xl {
+  position: absolute;
+  touch-action: none;
+}
+
+.controls-center .btn-xl.dragging {
+  opacity: 0.75;
+  cursor: grabbing;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.25);
+}
+
+/* Arraste também fora do modo livre (inicia o drag e depois grava). */
+#startBtn,
+#stopBtn {
+  touch-action: none;
+}
+
+/* Zona direita: sessão contínua + GameSir + kebab. */
 .controls-right {
   flex: 0 0 auto;
   display: flex;
@@ -678,6 +708,89 @@ input {
   flex-wrap: wrap;
   justify-content: flex-end;
   margin-left: auto;
+}
+
+/* ---------------- Kebab menu (som + ajuda) ---------------- */
+.kebab-btn {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+}
+
+.kebab-btn:hover {
+  background: var(--surface-2);
+}
+
+.kebab-menu {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 8px 0 currentColor, 0 16px 0 currentColor;
+  cursor: pointer;
+}
+
+[data-theme="night"] .kebab-btn {
+  color: #e5e7eb;
+}
+
+[data-theme="pool"] .kebab-btn {
+  color: #1f2937;
+  width: 56px;
+  height: 56px;
+  min-height: 56px;
+}
+
+.kebab-panel {
+  position: absolute;
+  top: 100%;
+  right: 0.9rem;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 13.5rem;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.kebab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kebab-item:hover {
+  background: var(--surface-2);
+}
+
+.kebab-state {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 /* Botões do modelo: mais altos, raio maior, destaque visual. */
@@ -689,15 +802,16 @@ input {
   padding: 0.5rem 1rem;
 }
 
-/* ≥641px: par Iniciar/Parar centralizado com gap fixo de ~5cm
-   (margin compensa o gap flex de 0.5rem). */
+/* ≥641px: par Iniciar/Parar centralizado com gap fixo de ~5cm.
+   Gap no palco (não margin no botão) — sobrevive ao drag&drop que
+   inverte a ordem dos botões. */
 @media (min-width: 641px) {
   .controls-center .btn-xl {
     flex: 0 1 auto;
   }
 
-  #startBtn {
-    margin-right: calc(5cm - 0.5rem);
+  .controls-center {
+    gap: 5cm;
   }
 }
 
@@ -730,11 +844,13 @@ input {
   animation-duration: 3s !important;
 }
 
-/* Lista de raias */
+/* Lista de raias — agora ocupa até a borda inferior do modal (rodapé
+   removido em v0.7.0); safe-area protege o home indicator. */
 .raia-list {
   list-style: none;
   margin: 0;
   padding: 0 0.9rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -931,41 +1047,6 @@ input {
   background: var(--success-soft);
   color: var(--success);
   border-color: var(--success);
-}
-
-/* Rodapé do modal: hint centralizado + "?" flutuante no canto inferior
-   direito (conforme mockup). */
-.chrono-footer {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding-bottom: env(safe-area-inset-bottom);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-}
-
-.chrono-hint {
-  text-align: center;
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin: 0;
-  padding: 0.4rem 3rem;
-}
-
-.help-float {
-  position: absolute;
-  right: 0.4rem;
-  bottom: calc(0.2rem + env(safe-area-inset-bottom));
-  width: 48px;
-  min-height: 48px;
-}
-
-/* Pool (alvos grandes): "?" do rodapé alcança 56px. */
-[data-theme="pool"] .help-float {
-  width: 56px;
-  min-height: 56px;
 }
 
 /* ---------------- Resumo ---------------- */
@@ -1226,19 +1307,14 @@ code {
     grid-template-areas:
       "controls controls"
       "header header"
-      "state state"
-      "list list"
-      "hint hint";
-    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+      "list list";
+    grid-template-rows: auto auto minmax(0, 1fr);
     overflow: hidden;
   }
 
   .chrono-header {
     grid-area: header;
-  }
-
-  .state-line {
-    grid-area: state;
+    padding: 0.4rem 0.9rem;
   }
 
   .chrono-controls {
@@ -1249,13 +1325,14 @@ code {
     grid-area: list;
   }
 
-  .chrono-footer {
-    grid-area: hint;
-    min-height: 48px;
+  /* State-line oculta no paisagem: a altura vai para as raias (4 cards
+     sem scroll). O estado segue visível nas tags (NADANDO/Descanso/✓). */
+  .state-line {
+    display: none;
   }
 
   /* Compressão da row de controles: tudo (Resumo · Iniciar/Parar ·
-     contínuo · GameSir · som) precisa caber em UMA linha — a altura
+     contínuo · GameSir · kebab) precisa caber em UMA linha — a altura
      da viewport é escassa. */
   .chrono-controls {
     gap: 0.35rem;
@@ -1263,17 +1340,9 @@ code {
   }
 
   .chrono-controls .btn-xl {
-    min-height: 52px;
+    min-height: 48px;
     font-size: 1rem;
     padding: 0.4rem 0.65rem;
-  }
-
-  .controls-center {
-    gap: 0.35rem;
-  }
-
-  #startBtn {
-    margin-right: calc(5cm - 0.35rem);
   }
 
   .controls-right {
@@ -1282,31 +1351,103 @@ code {
   }
 
   .controls-right .display-continuous {
-    padding: 0.25rem 0.5rem;
+    padding: 0.2rem 0.5rem;
   }
 
   .controls-right .display-continuous .display-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 
   .controls-right .display-continuous .display-value-sm {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
   .controls-right .gp-badge {
-    max-width: 6.5rem;
+    max-width: 9.5rem;
     font-size: 0.75rem;
     padding: 0.3rem 0.55rem;
   }
 
-  #soundBtn {
-    width: 48px;
-    min-height: 48px;
+  .kebab-btn {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
   }
 
-  .help-float {
-    width: 44px;
-    min-height: 44px;
+  /* Card mestre menor — segue centralizado no grid 1fr auto 1fr. */
+  .display-value {
+    font-size: 2.1rem;
+  }
+
+  /* ---- Raias compactas: 4 cards cabem sem scroll (v0.7.0) ---- */
+  .raia-list {
+    gap: 0.25rem;
+  }
+
+  .raia {
+    gap: 0.45rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 14px;
+  }
+
+  .raia-handle {
+    min-width: 22px;
+    min-height: 24px;
+    font-size: 0.9rem;
+  }
+
+  .raia-lane {
+    font-size: 0.95rem;
+    min-width: 1.5rem;
+  }
+
+  .raia-main {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .raia-name {
+    font-size: 0.85rem;
+    min-width: 0;
+  }
+
+  .raia-meta {
+    font-size: 0.7rem;
+    margin-top: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .raia-temps {
+    display: none;
+  }
+
+  .raia-right {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .raia-clock {
+    font-size: 1.05rem;
+  }
+
+  .raia-clock.rest-count {
+    font-size: 1rem;
+  }
+
+  .raia-tag {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .raia.selected::after {
+    content: "✓";
+    font-size: 0.9rem;
   }
 }
 

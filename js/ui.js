@@ -12,6 +12,58 @@ const handlers = {};
 let flash = { text: "", until: 0 };
 let suppressClickUntil = 0;
 let confirmResolve = null;
+
+// Posição livre de Iniciar/Parar (drag&drop) — pref por usuário.
+const BTN_POS_KEY = "cronobase.btnPos.v1";
+
+function loadBtnPos() {
+  try {
+    return JSON.parse(localStorage.getItem(BTN_POS_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveBtnPos(pos) {
+  try {
+    localStorage.setItem(BTN_POS_KEY, JSON.stringify(pos));
+  } catch {
+    /* sem storage: posição vale só até fechar */
+  }
+}
+
+// Aplica o par salvo (x em fração do palco, y em px) com clamp aos
+// limites do palco — vale ao abrir o modal e a cada resize/orientação.
+function applyBtnPos() {
+  const chrono = els["screen-chrono"];
+  if (!chrono || !chrono.open) return;
+  const stage = els.startBtn && els.startBtn.closest(".controls-center");
+  if (!stage) return;
+  const pos = loadBtnPos();
+  if (!pos) {
+    stage.classList.remove("free");
+    for (const b of [els.startBtn, els.stopBtn]) {
+      if (b) {
+        b.style.left = "";
+        b.style.top = "";
+      }
+    }
+    return;
+  }
+  stage.classList.add("free");
+  for (const [b, key] of [
+    [els.startBtn, "s"],
+    [els.stopBtn, "p"],
+  ]) {
+    const p = pos[key];
+    if (!b || !p) continue;
+    const sr = stage.getBoundingClientRect();
+    const x = Math.min(Math.max(0, p.x * sr.width), Math.max(0, sr.width - b.offsetWidth));
+    const y = Math.min(Math.max(0, p.y), Math.max(0, sr.height - b.offsetHeight));
+    b.style.left = `${x}px`;
+    b.style.top = `${y}px`;
+  }
+}
 // Long-press do Parar: segurar ≥3s dispara Zerar (emit "reset").
 const STOP_HOLD_MS = 3000;
 let stopHoldTimer = null;
@@ -43,7 +95,7 @@ export function initUI() {
     "prevStepBtn", "nextStepBtn", "startWorkoutBtn",
         "savedCount", "exportBtn", "clearHistoryBtn",
     "brandVersion",
-    "chronoName", "chronoConfig", "gpStatus", "soundBtn",    "masterDisplay", "continuousDisplay", "chronoStateLine",
+    "chronoName", "chronoConfig", "gpStatus", "soundBtn", "kebabBtn", "kebabPanel",    "masterDisplay", "continuousDisplay", "chronoStateLine",
     "startBtn", "stopBtn", "summaryBtn", "chronoList",
     "summaryTitle", "summaryMeta", "summaryList",
     "backToChronoBtn", "discardBtn", "saveSessionBtn",
@@ -107,7 +159,13 @@ export function initUI() {
   });
 
   // Cronômetro.
-  els.startBtn.addEventListener("click", () => emit("start"));
+  els.startBtn.addEventListener("click", () => {
+    if (Date.now() < suppressClickUntil) {
+      suppressClickUntil = 0;
+      return;
+    }
+    emit("start");
+  });
   // Parar: toque curto = stop; segurar ≥3s = zerar (com confirmação).
   const beginStopHold = () => {
     if (els.stopBtn.disabled) return;
@@ -133,6 +191,10 @@ export function initUI() {
     els.stopBtn.addEventListener(ev, cancelStopHold);
   }
   els.stopBtn.addEventListener("click", () => {
+    if (Date.now() < suppressClickUntil) {
+      suppressClickUntil = 0;
+      return;
+    }
     if (stopLongFired) {
       stopLongFired = false;
       return;
@@ -150,6 +212,130 @@ export function initUI() {
   });
   els.summaryBtn.addEventListener("click", () => emit("openSummary"));
   els.soundBtn.addEventListener("click", () => emit("soundToggle"));
+
+  // ---------------- Kebab menu (som + ajuda) ----------------
+  const closeKebab = () => {
+    els.kebabPanel.hidden = true;
+    els.kebabBtn.setAttribute("aria-expanded", "false");
+  };
+  els.kebabBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = els.kebabPanel.hidden;
+    els.kebabPanel.hidden = !open;
+    els.kebabBtn.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", (e) => {
+    if (els.kebabPanel.hidden) return;
+    if (els.kebabPanel.contains(e.target) || els.kebabBtn.contains(e.target)) return;
+    closeKebab();
+  });
+  for (const b of [els.soundBtn, els.helpBtnChrono]) {
+    b.addEventListener("click", closeKebab);
+  }
+  // Esc fecha APENAS o menu — sem preventDefault o `cancel` do <dialog>
+  // dispararia exitChrono e pediria confirmação de sair.
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key === "Escape" && !els.kebabPanel.hidden) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeKebab();
+      }
+    },
+    true
+  );
+
+  // ---------- Drag&drop: posição livre de Iniciar/Parar ----------
+  // Palco = .controls-center. Pref salvo em cronobase.btnPos.v1 como
+  // fração da largura do palco (x) + px da altura (y) — escala entre
+  // orientações/tamanhos de tela; clamp impede estouro.
+  let btnDrag = null;
+  const onBtnPointerDown = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const btn = e.currentTarget;
+    const r = btn.getBoundingClientRect();
+    btnDrag = {
+      btn,
+      stage: btn.closest(".controls-center"),
+      id: e.pointerId,
+      sx: e.clientX,
+      sy: e.clientY,
+      ox: e.clientX - r.left,
+      oy: e.clientY - r.top,
+      moved: false,
+    };
+  };
+  const onBtnPointerMove = (e) => {
+    if (!btnDrag || e.pointerId !== btnDrag.id) return;
+    const dx = e.clientX - btnDrag.sx;
+    const dy = e.clientY - btnDrag.sy;
+    if (!btnDrag.moved) {
+      if (Math.hypot(dx, dy) < 8) return;
+      btnDrag.moved = true;
+      // Arrastou: cancela o long-press do Parar (não dispara Zerar).
+      cancelStopHold();
+      // Congela o par nas posições atuais ANTES de sair do fluxo —
+      // sem isso o outro botão "pula" para o centro do palco.
+      const sr0 = btnDrag.stage.getBoundingClientRect();
+      for (const b of [els.startBtn, els.stopBtn]) {
+        const r = b.getBoundingClientRect();
+        b.style.left = `${r.left - sr0.left}px`;
+        b.style.top = `${r.top - sr0.top}px`;
+      }
+      btnDrag.stage.classList.add("free");
+      btnDrag.btn.classList.add("dragging");
+    }
+    const { btn, stage } = btnDrag;
+    const sr = stage.getBoundingClientRect();
+    const x = Math.min(
+      Math.max(0, e.clientX - sr.left - btnDrag.ox),
+      Math.max(0, sr.width - btn.offsetWidth)
+    );
+    const y = Math.min(
+      Math.max(0, e.clientY - sr.top - btnDrag.oy),
+      Math.max(0, sr.height - btn.offsetHeight)
+    );
+    btn.style.left = `${x}px`;
+    btn.style.top = `${y}px`;
+  };
+  const onBtnPointerUp = (e) => {
+    if (!btnDrag || (e.pointerId != null && e.pointerId !== btnDrag.id)) return;
+    const { btn, stage, moved } = btnDrag;
+    btnDrag = null;
+    btn.classList.remove("dragging");
+    if (!moved) return; // tap comum → o click normal segue fluxo
+    const sr = stage.getBoundingClientRect();
+    const pos = {};
+    for (const [b, key] of [
+      [els.startBtn, "s"],
+      [els.stopBtn, "p"],
+    ]) {
+      const r = b.getBoundingClientRect();
+      pos[key] = {
+        x: sr.width > 0 ? (r.left - sr.left) / sr.width : 0,
+        y: Math.max(0, r.top - sr.top),
+      };
+    }
+    saveBtnPos(pos);
+    stage.classList.add("free");
+    // Congela o par nas coordenadas recém-salvas (o outro botão sai do
+    // fluxo junto e precisa de left/top explícitos).
+    for (const [b, key] of [
+      [els.startBtn, "s"],
+      [els.stopBtn, "p"],
+    ]) {
+      b.style.left = `${pos[key].x * sr.width}px`;
+      b.style.top = `${pos[key].y}px`;
+    }
+    suppressClickUntil = Date.now() + 350;
+  };
+  els.startBtn.addEventListener("pointerdown", onBtnPointerDown);
+  els.stopBtn.addEventListener("pointerdown", onBtnPointerDown);
+  document.addEventListener("pointermove", onBtnPointerMove);
+  document.addEventListener("pointerup", onBtnPointerUp);
+  document.addEventListener("pointercancel", onBtnPointerUp);
+  window.addEventListener("resize", applyBtnPos);
 
   // Lista de raias: seleção + reordenação por handle (pointer events).
   els.chronoList.addEventListener("click", (e) => {
@@ -224,6 +410,7 @@ export function showScreen(name) {
 
   if (name === "chrono") {
     if (!chrono.open) chrono.showModal();
+    applyBtnPos();
     window.scrollTo(0, 0);
     // Toast no top layer do modal (fora do dialog ele fica atrás do backdrop).
     chrono.appendChild(els.toast);
@@ -591,7 +778,12 @@ export function setThemeChoice(theme) {
 }
 
 export function setSoundOn(on) {
-  els.soundBtn.textContent = on ? "🔔" : "🔕";
+  // Item do kebab: ícone + rótulo de estado (nunca textContent no botão
+  // inteiro — apagaria "Alerta sonoro").
+  const ico = els.soundBtn.querySelector(".kebab-ico");
+  const stateEl = els.soundBtn.querySelector(".kebab-state");
+  if (ico) ico.textContent = on ? "🔔" : "🔕";
+  if (stateEl) stateEl.textContent = on ? "Ligado" : "Desligado";
   els.soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
   els.soundBtn.title = on ? "Alerta sonoro ligado" : "Alerta sonoro desligado";
 }

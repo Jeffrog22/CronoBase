@@ -58,11 +58,6 @@ async function run() {
         cRect.top < hRect.top && hRect.top < lRect.top,
         `ordem paisagem: controles → cabeçalho → lista [c=${cRect.top.toFixed(0)} h=${hRect.top.toFixed(0)} l=${lRect.top.toFixed(0)}]`
       );
-      const helpRect = $("helpBtnChrono").getBoundingClientRect();
-      check(
-        helpRect.top >= lRect.bottom - 2,
-        `? no canto inferior direito (após a lista) [help.top=${helpRect.top.toFixed(0)} list.bottom=${lRect.bottom.toFixed(0)}]`
-      );
     }
     check(document.querySelectorAll("#chronoList .raia").length === 2, "2 raias renderizadas");
     const cl = $("chronoList");
@@ -73,11 +68,57 @@ async function run() {
     check($("startBtn").textContent === "Iniciar", "botão mostra Iniciar");
     check($("gpStatus").textContent.includes("desect") || $("gpStatus").textContent.includes("desconect"), "status GameSir visível");
 
+    // 1.5 Kebab: menu com alerta sonoro + ajuda
+    $("kebabBtn").click();
+    check(!$("kebabPanel").hidden, "kebab abre o menu");
+    check(
+      $("soundBtn").offsetParent !== null && $("helpBtnChrono").offsetParent !== null,
+      "menu lista alerta sonoro + ajuda"
+    );
+    $("helpBtnChrono").click();
+    check($("helpDialog").open, "ajuda abre a partir do kebab");
+    check($("kebabPanel").hidden, "menu fecha ao abrir a ajuda");
+    $("helpCloseBtn").click();
+    const soundBefore = $("soundBtn").getAttribute("aria-pressed");
+    $("kebabBtn").click();
+    $("soundBtn").click();
+    check($("soundBtn").getAttribute("aria-pressed") !== soundBefore, "item som alterna o estado");
+    check($("kebabPanel").hidden, "menu fecha ao acionar um item");
+    $("kebabBtn").click(); // restaura o estado original do som
+    $("soundBtn").click();
+    $("kebabBtn").click(); // abre de novo p/ testar o click fora
+    $("chronoName").click();
+    check($("kebabPanel").hidden, "click fora fecha o kebab");
+
     // 2. Tema troca sem zerar estado
     $("themeSelectChrono").value = "night";
     $("themeSelectChrono").dispatchEvent(new Event("change"));
     check(document.documentElement.dataset.theme === "night", "tema Noturna aplicado");
     check($("masterDisplay").textContent === "00:00:00", "relógio mestre zerado antes de iniciar");
+
+    // 2.5 Drag&drop: reposiciona Iniciar sem disparar o click
+    const sb0 = $("startBtn").getBoundingClientRect();
+    const tb0 = $("stopBtn").getBoundingClientRect();
+    const cx = tb0.left + tb0.width / 2;
+    const cy = tb0.top + tb0.height / 2;
+    $("startBtn").dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        pointerId: 7,
+        clientX: sb0.left + sb0.width / 2,
+        clientY: sb0.top + sb0.height / 2,
+      })
+    );
+    document.dispatchEvent(
+      new PointerEvent("pointermove", { bubbles: true, pointerId: 7, clientX: cx, clientY: cy })
+    );
+    $("startBtn").dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 7, clientX: cx, clientY: cy })
+    );
+    check(Boolean(localStorage.getItem("cronobase.btnPos.v1")), "drag salva a posição dos botões");
+    check($("startBtn").style.left !== "", "startBtn fora do fluxo (left inline)");
+    $("startBtn").click();
+    check(window.cronobase.state.masterRunning === false, "click após drag é engolido");
 
     // 3. Iniciar → Split → Parar (Modo 2, 50 m)
     $("startBtn").click();
@@ -155,6 +196,20 @@ async function run() {
     const after = afterRaw ? JSON.parse(afterRaw) : null;
     check(Boolean(after) && after.sessions.length === 1, "descartar NÃO grava nada (continua 1)");
     check(window.cronobase.state.staged.length === 0, "descartar limpa o staging");
+
+    // 7. 4 cards: adiciona 2 atletas e verifica que todos cabem sem scroll
+    $("novoAtleta").value = "Carlos";
+    $("addAtletaBtn").click();
+    $("novoAtleta").value = "Dani";
+    $("addAtletaBtn").click();
+    $("startWorkoutBtn").click();
+    check($("screen-chrono").open, "sessão com 4 atletas abre");
+    check(document.querySelectorAll("#chronoList .raia").length === 4, "4 raias renderizadas");
+    const cl4 = $("chronoList");
+    check(
+      cl4.scrollHeight <= cl4.clientHeight + 1,
+      `4 cards cabem sem scroll [scroll=${cl4.scrollHeight} client=${cl4.clientHeight}]`
+    );
   } catch (err) {
     results.push(`FAIL exceção: ${err && err.message}`);
   }

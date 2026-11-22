@@ -137,7 +137,17 @@
             <span class="display-value clock display-value-sm" id="continuousDisplay">00:00:00</span>
           </div>
           <span id="gpStatus" class="gp-badge gp-off" title="Status do controle GameSir">GameSir: —</span>
-          <button id="soundBtn" class="btn btn-ghost btn-square" aria-label="Alternar som" title="Som do alerta">🔔</button>
+          <button id="kebabBtn" class="kebab-btn" aria-label="Mais opções" aria-expanded="false" aria-controls="kebabPanel">
+            <span class="kebab-menu" aria-hidden="true"></span>
+          </button>
+          <div id="kebabPanel" class="kebab-panel" hidden>
+            <button id="soundBtn" class="kebab-item" aria-pressed="true">
+              <span class="kebab-ico" aria-hidden="true">🔔</span>
+              <span>Alerta sonoro</span>
+              <span class="kebab-state">Ligado</span>
+            </button>
+            <button id="helpBtnChrono" class="kebab-item">Ajuda / controles</button>
+          </div>
         </div>
       </div>
 
@@ -156,13 +166,6 @@
       <div id="chronoStateLine" class="state-line" aria-live="polite">Parado · toque em Iniciar</div>
 
       <ul id="chronoList" class="raia-list" aria-label="Atletas"></ul>
-
-      <div class="chrono-footer">
-        <p class="chrono-hint muted">
-          LT = Iniciar/Split · RT = Parar (segure 3 s = Zerar) · B = sair · X = resumo · Y = ajuda
-        </p>
-        <button id="helpBtnChrono" class="btn btn-ghost btn-square help-float" aria-label="Abrir ajuda" title="Ajuda">?</button>
-      </div>
     </dialog>
 
     <!-- ======================= RESUMO ======================= -->
