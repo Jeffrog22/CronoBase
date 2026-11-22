@@ -678,12 +678,17 @@ input {
 /* Modo posição livre (pref salvo em cronobase.btnPos.v1): botões fora do
    fluxo, coordenadas inline em % do palco. align-self: stretch mantém o
    palco com a altura da linha (senão ele colapsa p/ 0 e o y é todo
-   deslocado para baixo). */
+   deslocado para baixo).
+   BUG v0.8.0: `#stopBtn { position: relative }` (id, v0.3.0, contentora
+   do fill do long-press) tem especificidade 1,0,0 e vencia esta regra —
+   o Parar ficava relative com left/top inline e era deslocado para
+   fora da tela. Por isso o id entra no seletor. */
 .controls-center.free {
   align-self: stretch;
 }
 
-.controls-center.free .btn-xl {
+.controls-center.free .btn-xl,
+.controls-center.free #stopBtn {
   position: absolute;
   touch-action: none;
 }

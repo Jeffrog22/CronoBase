@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Sessão contínua no meio, sem gap 5cm (v0.8.0) -->
+﻿<!-- última-sessão: 22/11/2026 — Fix do Parar sumindo no modo livre (v0.8.1) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.8.0
+- **Versão atual:** v0.8.1
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -501,4 +501,49 @@ Regras:
 - `npm test`: 46/46 lógica + **52/52 E2E** — verde
 - Screenshots CDP: `Resumo | Iniciar [cont] Parar | GameSir ⋮` nas duas
   orientações, sem vazio de 5cm
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Fix: Parar sumindo no modo livre (v0.8.1)
+
+### O que foi feito
+- **Bug reportado**: "o botão parar sumiu". Causa: especificidade CSS —
+  `#stopBtn { position: relative; overflow: hidden }` (id, v0.3.0,
+  contentora do `::after` do long-press) vencia
+  `.controls-center.free .btn-xl { position: absolute }` (`0,3,0`).
+  Com `cronobase.btnPos.v1` salvo (drag), o Iniciar ia p/ absolute, mas
+  o Parar ficava `relative` com `left/top` inline = deslocado relativo à
+  posição de fluxo (que já era diferente, com o Iniciar fora do fluxo) →
+  sai da viewport e é recortado pelo `overflow: hidden` do modal
+- **Correção** (`styles/app.css`): seletor do modo livre ganha o id —
+  `.controls-center.free .btn-xl, .controls-center.free #stopBtn`
+  (especificidade `1,2,0` > `1,0,0`). `#stopBtn { position: relative }`
+  mantido para o modo flex (fill do long-press); em modo livre o
+  absolute já é positioned ancestor do fill
+- **E2E +1 check de regressão**: `Parar visível após drag (modo livre)` —
+  retângulo do `stopBtn` com largura > 0 e dentro da viewport (o fluxo
+  antigo só media o `startBtn` e passava com o Parar sumido)
+- Repro CDP com `cronobase.btnPos.v1` semeado (`{s:{x:.1},p:{x:.62}}`):
+  `free=true`, `stop=[384,0,449,48]` dentro do vp776, screenshot
+  confirma os 3 elementos visíveis
+- `APP_VERSION`/`package.json` → 0.8.1; CHANGELOG v0.8.1 + este registro
+
+### Decisões
+- Sem migração de dados: a posição salva continua válida (clamp p/ os
+  limites do palco); se o usuário salvou coords com o bug ativo, o
+  clamp as traz de volta p/ dentro do palco — pode re-arrastar
+- Não usar `!important` — seletor com id é suficiente e explícito
+
+### Arquivos
+- `styles/app.css`
+- `tests/e2e-checks.js`
+- `js/state.js`
+- `package.json`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + **53/53 E2E** — verde
 - Não há backend (app 100% estática)

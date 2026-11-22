@@ -18,6 +18,20 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.8.1] - 22/11/2026
+### Fixed
+- **Botão Parar sumia com o drag aplicado** (posições salvas em
+  `cronobase.btnPos.v1`): `#stopBtn { position: relative }` (regra por
+  ID da v0.3.0, contentora do fill do long-press) tinha especificidade
+  `1,0,0` e vencia `.controls-center.free .btn-xl { position: absolute }`
+  (`0,3,0`) — o Parar ficava `relative` com `left/top` inline e era
+  deslocado para fora da viewport (recortado pelo `overflow:hidden` do
+  modal). Corrigido incluindo o id no seletor do modo livre
+  (`.controls-center.free #stopBtn`, especificidade `1,2,0`)
+- E2E ganha check de regressão: `Parar visível após drag (modo livre)`
+  (retângulo dentro da viewport) — o fluxo antigo só verificava o
+  `startBtn` e passava com o Parar sumido
+
 ## [v0.8.0] - 22/11/2026
 ### Changed
 - **Sessão contínua movida para o MEIO dos botões**: row de controles

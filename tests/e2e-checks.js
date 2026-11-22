@@ -125,6 +125,11 @@ async function run() {
     check($("startBtn").style.left !== "", "startBtn fora do fluxo (left inline)");
     $("startBtn").click();
     check(window.cronobase.state.masterRunning === false, "click após drag é engolido");
+    const tbAfter = $("stopBtn").getBoundingClientRect();
+    check(
+      tbAfter.width > 0 && tbAfter.left >= -1 && tbAfter.right <= window.innerWidth + 1,
+      `Parar visível após drag (modo livre) [left=${tbAfter.left.toFixed(0)} right=${tbAfter.right.toFixed(0)} vw=${window.innerWidth}]`
+    );
 
     // 3. Iniciar → Split → Parar (Modo 2, 50 m)
     $("startBtn").click();
