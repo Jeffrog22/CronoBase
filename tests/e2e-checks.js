@@ -40,7 +40,7 @@ async function run() {
     $("nextStepBtn").click(); // → passo 3
     check($("stepPanel3").classList.contains("active"), "navegação de passos");
     $("startWorkoutBtn").click();
-    check(!$("screen-chrono").hidden, "tela do cronômetro abriu");
+    check($("screen-chrono").open, "tela do cronômetro abriu");
     check(document.querySelectorAll("#chronoList .raia").length === 2, "2 raias renderizadas");
     check($("startBtn").textContent === "Iniciar", "botão mostra Iniciar");
     check($("gpStatus").textContent.includes("desect") || $("gpStatus").textContent.includes("desconect"), "status GameSir visível");
@@ -102,7 +102,7 @@ async function run() {
 
     // 6. Descartar: com dados em memória, não grava nada
     $("startWorkoutBtn").click(); // reabre (step 3 ainda ativo)
-    check(!$("screen-chrono").hidden, "nova sessão abre");
+    check($("screen-chrono").open, "nova sessão abre");
     $("startBtn").click();
     await sleep(80);
     $("stopBtn").click();

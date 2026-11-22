@@ -123,7 +123,14 @@
     </section>
 
     <!-- ======================= CRONÔMETRO ======================= -->
-    <section id="screen-chrono" class="screen" hidden>
+    <dialog id="screen-chrono" class="screen">
+      <div class="chrono-controls">
+        <button id="startBtn" class="btn btn-primary btn-xl">Iniciar</button>
+        <button id="stopBtn" class="btn btn-danger btn-xl">Parar</button>
+        <button id="resetBtn" class="btn btn-secondary btn-xl">Zerar</button>
+        <button id="summaryBtn" class="btn btn-success btn-xl">Resumo</button>
+      </div>
+
       <header class="chrono-header">
         <div class="chrono-title">
           <span id="chronoName" class="chrono-name">Treino</span>
@@ -150,19 +157,12 @@
 
       <div id="chronoStateLine" class="state-line" aria-live="polite">Parado · toque em Iniciar</div>
 
-      <div class="chrono-controls">
-        <button id="startBtn" class="btn btn-primary btn-xl">Iniciar</button>
-        <button id="stopBtn" class="btn btn-danger btn-xl">Parar</button>
-        <button id="resetBtn" class="btn btn-secondary btn-xl">Zerar</button>
-        <button id="summaryBtn" class="btn btn-success btn-xl">Resumo</button>
-      </div>
-
       <ul id="chronoList" class="raia-list" aria-label="Atletas"></ul>
 
       <p class="chrono-hint muted">
         LT = Iniciar/Split · RT = Parar · B = sair · X = resumo · Y = ajuda
       </p>
-    </section>
+    </dialog>
 
     <!-- ======================= RESUMO ======================= -->
     <section id="screen-summary" class="screen" hidden>

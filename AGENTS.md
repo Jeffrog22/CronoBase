@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 21/11/2026 — validação E2E, testes permanentes e v0.1.0 -->
+﻿<!-- última-sessão: 22/11/2026 — cronômetro como modal <dialog> colado ao topo (v0.2.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.1.0
+- **Versão atual:** v0.2.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -50,7 +50,7 @@ Regras:
 | `index.html` | App de página única — 3 telas (config, cronômetro, resumo) + diálogos |
 | `js/motor` → `js/modo2.js` | Regras do Modo 2 (lógica pura, testável em Node) |
 | `js/state.js` | Estado singleton da sessão, `DEFAULT_CONFIG`, `uid` |
-| `js/ui.js` | Camada de renderização (única que toca o DOM de dados) |
+| `js/ui.js` | Camada de renderização (única que toca o DOM de dados) + `showScreen` (abre/fecha o `<dialog>` do cronômetro) |
 | `js/main.js` | Bootstrap, handlers de eventos, PWA |
 | `js/store.js` | Persistência localStorage (semântica transacional) |
 | `js/gamepad.js` | Adaptador GameSir X5 Lite (edge/debounce/priming) |
@@ -75,6 +75,8 @@ Regras:
 - **Service Worker nunca ativa versão sozinha** (sem `skipWaiting` automático): atualização só via banner + confirmação, e bloqueada se houver sessão não salva. `/sw.js` precisa de `Cache-Control: no-cache` (já em `_headers`).
 - **Testes E2E rodam em navegador headless** com `--dump-dom` e `--virtual-time-budget`; o runner precisa de `spawn` **assíncrono** (spawnSync bloqueia o event loop e o servidor HTTP local morre de fome — o Edge trava até o timeout).
 - **`npm run check`** = sintaxe (`node --check`) de todos os módulos; **`npm test`** = lógica + E2E. Ambos verdes antes de qualquer commit.
+- **O cronômetro é um `<dialog>` modal (`#screen-chrono`)**, não mais `<section hidden>`: abre via `showModal()` em `showScreen()` (js/ui.js), fecha via `close()`, e usa atributo `open` (não `hidden`). `Esc` dispara `cancel` → `preventDefault` → `exitChrono` (confirmação obrigatória). O `#toast` é movido para dentro do dialog enquanto aberto (top layer fica acima de qualquer `z-index` do body) e devolvido ao `<body>` ao sair. **Não usar `hidden` nesse elemento.**
+- **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono`, centralizada, com `#startBtn { margin-right: calc(5cm - 0.5rem) }` (gap real de 5cm entre Iniciar/Parar). Em telas ≤ 640px a media query zera a margem e volta `flex: 1 1 0` (5cm não cabe). Safe-area-inset-top está no `.chrono-controls`, não mais no `.chrono-header`.
 
 ---
 
@@ -120,6 +122,38 @@ Regras:
 - `package.json`
 - `README.md`
 - `docs/DEPLOY-CLOUDFLARE.md`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 29/29 E2E — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Cronômetro como modal colado ao topo (v0.2.0)
+
+### O que foi feito
+- Converte `#screen-chrono` de `<section hidden>` para `<dialog>` modal de borda total colado no topo (`margin: 0 auto`, `100dvh`, sem border-radius)
+- Move `.chrono-controls` para o 1º filho do modal — linha de botões colada na borda superior, centralizada, com gap fixo de ~5cm entre Iniciar e Parar (`margin-right: calc(5cm - 0.5rem)`); media query ≤ 640px volta ao layout de larguras iguais
+- `showScreen("chrono")` passa a usar `showModal()` + `scrollTo(0,0)`; sair usa `close()`; `#toast` entra/sai do dialog (top layer)
+- Esc no modal → `cancel` com `preventDefault` → `exitChrono` (confirmação de sair, nunca fecha direto); registra `ui.on("exitChrono")` em main.js
+- Migra safe-area-inset-top do `.chrono-header` para `.chrono-controls`
+- Atualiza E2E: `$("screen-chrono").open` no lugar de `.hidden` (2 checks)
+- CHANGELOG v0.2.0 + este registro
+
+### Decisões
+- Modal `<dialog>` em vez de reordenar a seção (escolha do usuário) — confirmação via diálogo empilhado funciona nativamente
+- Gap 5cm literal com fallback ≤ 640px (pergunta pendente respondida com "ok" — manteve a guarda)
+- Toast reparentado em vez de CSS z-index (top layer ignora z-index do body)
+
+### Arquivos
+- `index.html`
+- `styles/app.css`
+- `js/ui.js`
+- `js/main.js`
+- `tests/e2e-checks.js`
 - `CHANGELOG.md`
 - `AGENTS.md`
 

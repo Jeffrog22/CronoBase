@@ -499,6 +499,7 @@ function init() {
   ui.on("reset", handleReset);
   ui.on("openSummary", openSummary);
   ui.on("backToChrono", backToChrono);
+  ui.on("exitChrono", exitChrono);
   ui.on("discard", () => discardSession(true));
   ui.on("saveSession", saveSession);
   ui.on("selectRow", (id) => {

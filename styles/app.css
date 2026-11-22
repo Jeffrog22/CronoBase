@@ -401,9 +401,27 @@ input {
 }
 
 /* ---------------- Cronômetro ---------------- */
+/* Modal <dialog> de borda total, colado no topo da viewport. */
 #screen-chrono {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
   height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
   overflow: hidden;
+}
+
+#screen-chrono:not([open]) {
+  display: none;
+}
+
+#screen-chrono::backdrop {
+  background: rgb(0 0 0 / 0.45);
 }
 
 .chrono-header {
@@ -412,7 +430,6 @@ input {
   justify-content: space-between;
   gap: 0.6rem;
   padding: 0.5rem 0.9rem;
-  padding-top: calc(0.5rem + env(safe-area-inset-top));
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
@@ -544,9 +561,35 @@ input {
 
 .chrono-controls {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.55rem 0.9rem;
+  padding-top: calc(0.55rem + env(safe-area-inset-top));
+  border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
+}
+
+/* Largura natural dos botões: o par Iniciar/Parar fica centralizado
+   com gap fixo de ~5cm entre eles (compensa o gap flex de 0.5rem). */
+.chrono-controls .btn-xl {
+  flex: 0 1 auto;
+}
+
+#startBtn {
+  margin-right: calc(5cm - 0.5rem);
+}
+
+/* Telas ≤640px: 5cm não cabe na linha — volta ao layout antigo
+   (botões dividem a largura em partes iguais, gap 0.5rem). */
+@media (max-width: 640px) {
+  #startBtn {
+    margin-right: 0;
+  }
+
+  .chrono-controls .btn-xl {
+    flex: 1 1 0;
+  }
 }
 
 /* Lista de raias */

@@ -137,6 +137,12 @@ export function initUI() {
   }
   els.helpCloseBtn.addEventListener("click", () => els.helpDialog.close());
 
+  // Esc no modal do cronômetro: não fecha direto — pede confirmação de sair.
+  els["screen-chrono"].addEventListener("cancel", (e) => {
+    e.preventDefault();
+    emit("exitChrono");
+  });
+
   // Confirmação.
   els.confirmCancelBtn.addEventListener("click", () => resolveConfirm(false));
   els.confirmOkBtn.addEventListener("click", () => resolveConfirm(true));
@@ -165,9 +171,20 @@ export function initUI() {
 /* ---------------- Telas ---------------- */
 
 export function showScreen(name) {
+  const chrono = els["screen-chrono"];
+
   els["screen-config"].hidden = name !== "config";
-  els["screen-chrono"].hidden = name !== "chrono";
   els["screen-summary"].hidden = name !== "summary";
+
+  if (name === "chrono") {
+    if (!chrono.open) chrono.showModal();
+    window.scrollTo(0, 0);
+    // Toast no top layer do modal (fora do dialog ele fica atrás do backdrop).
+    chrono.appendChild(els.toast);
+  } else {
+    if (chrono.open) chrono.close();
+    document.body.appendChild(els.toast);
+  }
 }
 
 export function renderConfig(state, savedCount) {

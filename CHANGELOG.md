@@ -18,6 +18,26 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.2.0] - 22/11/2026
+### Added
+- Cronômetro abre como `<dialog>` modal colado ao topo da viewport (largura
+  total) em vez de seção estática — ao iniciar/reabrir treino a tela já nasce
+  no topo (`scrollTo(0,0)` + `showModal()`)
+- Linha de controles (`Iniciar · Parar · Zerar · Resumo`) como primeira linha
+  do modal, colada na borda superior e centralizada, com gap fixo de ~5 cm
+  entre Iniciar e Parar (telas ≤ 640px voltam ao layout de larguras iguais)
+- Esc no modal do cronômetro pede confirmação de sair (mesmo fluxo do botão
+  Sair) em vez de fechar direto e descartar a sessão
+
+### Changed
+- Safe-area-inset-top migrou do cabeçalho do cronômetro para a linha de
+  controles (que agora é o primeiro elemento do modal)
+- Toast move para dentro do dialog enquanto o cronômetro está aberto —
+  senão ficaria atrás do backdrop (top layer) e sumiria durante a sessão
+
+### Removed
+- Atributo `hidden` da tela do cronômetro (substituído por `open` do `<dialog>`)
+
 ## [v0.1.0] - 20/11/2026
 ### Added
 - App PWA estático completo (Modo 2) — sem backend, sem build step
