@@ -47,6 +47,11 @@ async function run() {
       `modal cobre a viewport [top=${cr.top.toFixed(1)} left=${cr.left.toFixed(1)} size=${cr.width.toFixed(0)}x${cr.height.toFixed(0)} vp=${window.innerWidth}x${window.innerHeight} bodyScroll=${document.body.scrollHeight}]`
     );
     check(document.querySelectorAll("#chronoList .raia").length === 2, "2 raias renderizadas");
+    const cl = $("chronoList");
+    check(
+      cl.scrollWidth <= cl.clientWidth + 1,
+      `raias sem overflow horizontal [scroll=${cl.scrollWidth} client=${cl.clientWidth}]`
+    );
     check($("startBtn").textContent === "Iniciar", "botão mostra Iniciar");
     check($("gpStatus").textContent.includes("desect") || $("gpStatus").textContent.includes("desconect"), "status GameSir visível");
 
@@ -65,23 +70,32 @@ async function run() {
     check(window.cronobase.state.raias[0].currentSplits.length === 1, "Split registrou parcial");
     check($("startBtn").textContent === "Split", "botão passa a exibir Split");
     await sleep(150);
+
+    // 3.5 Long-press do Parar (≥3s) pede confirmação de Zerar
+    window.__phase = "hold-open";
+    $("stopBtn").dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await sleep(3200);
+    $("stopBtn").dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+    await sleep(30);
+    check($("confirmDialog").open, "segurar Parar 3s abre confirmação de Zerar");
+    check(window.cronobase.state.masterRunning === true, "mestre segue rodando durante long-press");
+    $("stopBtn").click();
+    check(window.cronobase.state.masterRunning === true, "click engolido após long-press (não parou)");
+    window.__phase = "hold-cancel";
+    $("confirmCancelBtn").click();
+    await sleep(30);
+    check(!$("confirmDialog").open, "cancelar Zerar mantém o cronômetro");
+    check(window.cronobase.state.raias[0].currentSplits.length === 1, "cancelar Zerar mantém dados (split intacto)");
+
+    // 4. Parar → descanso (Modo 2, 50 m)
     $("stopBtn").click();
     const rest = window.cronobase.state.raias.find((r) => r.waiting);
     check(Boolean(rest), "Parar iniciou descanso");
+    check(!$("stopBtn").disabled, "Parar pausado habilitado com dados (long-press possível)");
     const row = document.querySelector('#chronoList .raia[data-id="' + rest.atletaId + '"]');
     check(row.classList.contains("resting"), "linha do descanso marcada visualmente");
     check(row.querySelector(".raia-tag").textContent.includes("Descanso"), "tag de Descanso visível");
     check(window.cronobase.state.selectedId !== rest.atletaId, "seleção avançou para próximo atleta");
-
-    // 4. Zerar pede confirmação
-    window.__phase = "reset-open";
-    $("resetBtn").click();
-    await sleep(30);
-    check($("confirmDialog").open, "Zerar abre confirmação");
-    window.__phase = "reset-cancel";
-    $("confirmCancelBtn").click();
-    await sleep(30);
-    check(window.cronobase.state.staged.length > 0, "cancelar Zerar mantém dados");
 
     // 5. Resumo + Salvar (com confirmação) → localStorage
     $("summaryBtn").click();

@@ -127,7 +127,6 @@
       <div class="chrono-controls">
         <button id="startBtn" class="btn btn-primary btn-xl">Iniciar</button>
         <button id="stopBtn" class="btn btn-danger btn-xl">Parar</button>
-        <button id="resetBtn" class="btn btn-secondary btn-xl">Zerar</button>
         <button id="summaryBtn" class="btn btn-success btn-xl">Resumo</button>
       </div>
 
@@ -160,7 +159,7 @@
       <ul id="chronoList" class="raia-list" aria-label="Atletas"></ul>
 
       <p class="chrono-hint muted">
-        LT = Iniciar/Split · RT = Parar · B = sair · X = resumo · Y = ajuda
+        LT = Iniciar/Split · RT = Parar (segure 3 s = Zerar) · B = sair · X = resumo · Y = ajuda
       </p>
     </dialog>
 
@@ -213,7 +212,7 @@
         <h3 class="sub-title">Regras do cronômetro</h3>
         <ul class="help-list">
           <li><strong>LT</strong>: inicia o treino ou registra um Split. Distâncias abaixo de 50 m não registram parciais.</li>
-          <li><strong>RT</strong>: finaliza a repetição do atleta selecionado (tempo total) e inicia o descanso/intervalo.</li>
+          <li><strong>RT</strong>: finaliza a repetição do atleta selecionado (tempo total) e inicia o descanso/intervalo. Segure ≥3 s para Zerar (pede confirmação).</li>
           <li>A ordem passa automaticamente para o próximo atleta ativo (não concluído, não descansando).</li>
           <li><strong>Home longo (≥700 ms)</strong> não tem ação neste app e nunca encerra a sessão.</li>
           <li>Nenhum botão fecha ou destrói a sessão sem confirmação.</li>

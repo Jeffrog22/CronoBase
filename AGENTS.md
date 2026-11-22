@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — fix do modal (cache SW + [hidden]) + CSS mobile-first (v0.2.1) -->
+﻿<!-- última-sessão: 22/11/2026 — Zerar via long-press + fix do modal em paisagem (v0.3.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.2.1
+- **Versão atual:** v0.3.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -79,6 +79,8 @@ Regras:
 - **`npm run check`** = sintaxe (`node --check`) de todos os módulos; **`npm test`** = lógica + E2E. Ambos verdes antes de qualquer commit.
 - **O cronômetro é um `<dialog>` modal (`#screen-chrono`)**, não mais `<section hidden>`: abre via `showModal()` em `showScreen()` (js/ui.js), fecha via `close()`, e usa atributo `open` (não `hidden`). `Esc` dispara `cancel` → `preventDefault` → `exitChrono` (confirmação obrigatória). O `#toast` é movido para dentro do dialog enquanto aberto (top layer fica acima de qualquer `z-index` do body) e devolvido ao `<body>` ao sair. **Não usar `hidden` nesse elemento.**
 - **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono`, centralizada. **Mobile-first (v0.2.1)**: a base usa larguras iguais (`flex: 1 1 0`, `#startBtn { margin-right: 0 }`) e `@media (min-width: 641px)` aplica o gap de 5cm (`#startBtn { margin-right: calc(5cm - 0.5rem) }`, `flex: 0 1 auto`). Safe-area-inset-top está no `.chrono-controls`, não mais no `.chrono-header`.
+- **Zerar é long-press do Parar (v0.3.0)** — não existe `#resetBtn`. Segurar `stopBtn` ≥3s (`STOP_HOLD_MS` em ui.js) emite `reset` (confirmação); soltar antes = tap normal (`stopLongFired` engole o click subsequente). Gamepad RT espelha o padrão do Home (`GP_ZERAR_LONG_MS`): tap = parar, hold ≥3s = zerar. Parar pausado fica habilitado quando há dados (`hasData`); toque pausado → toast "Já pausado.". **Não remover `expectedCloses` nem o swallow do longFired.**
+- **Grid de paisagem (v0.3.0)**: `@media (orientation: landscape) and (max-height: 560px)` usa áreas `"list list"` + `"hint hint"` (lista em largura total, hint linha própria) — o antigo `"list hint"` 2-colunas espremia as raias e deixava metade da tela vazia. `.raia-clock` tem cap `min(var(--clock-size), 1.7rem)` + `overflow-x: hidden` na lista (sem isso o `00:00:00` criava scrollbar horizontal em tela larga).
 
 ---
 
@@ -194,4 +196,39 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 30/30 E2E — verde (modal 756x488 = viewport exata, bodyScroll 488)
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Zerar via long-press + fix do modal em paisagem (v0.3.0)
+
+### O que foi feito
+- **Diagnóstico via print do usuário** (`print.jpeg`, gitignored): em paisagem o modal desconfigurava — linha de raia com relógio gigante sobrepondo + scrollbar horizontal, metade direita vazia (só hint), select de tema enorme, meta quebrando
+- **Zerar = segurar Parar ≥3s**: removido `#resetBtn` (barra: Iniciar · Parar · Resumo); `stopBtn` com pointerdown/up/leave + timer 3s + classe `holding` (fill CSS 3s) + `haptic(60)`; `stopLongFired` engole o click; teclado Enter/Space espelha; `disabled` passa a `!masterRunning && hasData`; toque pausado → toast "Já pausado."
+- **Gamepad RT**: `GP_ZERAR_LONG_MS = 3000` com padrão edge/hold do Home (`rtStart`/`rtFired`, reset na desconexão) — tap = "parar", hold ≥3s = "zerar" (`case "zerar"` → `handleReset`); `GP_MAP` atualizado
+- **Paisagem**: grid `"list list"`/`"hint hint"` (lista full-width, hint linha própria); `.raia-clock` cap 1.7rem + nowrap; `.raia-list { overflow-x: hidden }`; badge "✓ selecionado" → "✓" ≤640px; `.chrono-header-actions .select-sm` limitado a 8.5rem/0.85rem
+- Hint e help documentam o long-press; E2E: fluxo do hold (confirmação + click engolido + cancel mantém split), Parar pausado habilitado, "raias sem overflow horizontal"
+- Validação visual: screenshot headless 800×360 com fluxo automático — layout limpo (3 botões, select compacto, raia full-width, hint embaixo)
+- CHANGELOG v0.3.0 + este registro; `.gitignore` ganha `print.jpeg`
+
+### Decisões
+- Confirmação de zerar mantida (PRD exige confirmação explícita)
+- Hold testado **antes** do Parar (mestre rodando) para provar o swallow do click via `masterRunning`; asserção de "dados mantidos" usa o split intacto (staged ainda é 0 nesse ponto — staging nasce no recordFinal, coberto pelos testes de lógica)
+- Exceção `animation-duration: 3s !important` no fill do hold para não ser anulada pelo reset global de `prefers-reduced-motion`
+- `print.jpeg` gitignorado (diagnóstico do usuário, não é artefato do app)
+
+### Arquivos
+- `index.html`
+- `js/ui.js`
+- `js/main.js`
+- `js/gamepad.js`
+- `styles/app.css`
+- `tests/e2e-checks.js`
+- `.gitignore`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 35/35 E2E — verde
 - Não há backend (app 100% estática)

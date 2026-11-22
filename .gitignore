@@ -12,3 +12,7 @@ Thumbs.db
 .vscode/
 .anota/
 
+# Prints/diagnóstico do usuário (não versionar)
+/print.jpeg
+print.jpeg
+

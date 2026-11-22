@@ -159,7 +159,11 @@ function handleStart() {
 }
 
 function handleStop() {
-  if (state.screen !== "chrono" || !state.masterRunning) return;
+  if (state.screen !== "chrono") return;
+  if (!state.masterRunning) {
+    ui.toast("Já pausado.");
+    return;
+  }
   const t = now();
   const ev = recordFinal(state, t);
   if (ev) {
@@ -353,6 +357,9 @@ function handleGamepadAction(action) {
       break;
     case "parar":
       handleStop();
+      break;
+    case "zerar":
+      handleReset();
       break;
     case "sair":
     case "home-chrono":

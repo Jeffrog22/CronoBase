@@ -18,6 +18,36 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.3.0] - 22/11/2026
+### Added
+- **Zerar via long-press**: segurar o botão **Parar** por ≥3 s dispara o
+  Zerar (com confirmação) — barra do cronômetro fica em 3 botões
+  (Iniciar · Parar · Resumo); durante o hold um preenchimento em 3 s
+  mostra o progresso e háptico confirma o disparo
+- Mesmo comportamento no **gamepad**: RT segurado ≥3 s = Zerar; tap curto
+  continua sendo Parar (`GP_ZERAR_LONG_MS = 3000`, padrão do Home)
+- Parar pausado fica **habilitado** quando há dados (é a via do long-press);
+  toque curto pausado mostra o toast "Já pausado."
+- E2E: fluxo do long-press (abre confirmação, click engolido, cancel mantém
+  dados), check "Parar pausado habilitado" e check "raias sem overflow
+  horizontal"
+
+### Fixed
+- **Modal em modo paisagem desconfigurado** (print do usuário): a lista de
+  raias agora ocupa as duas colunas do grid e o hint vira linha própria
+  embaixo — acabou o metade-da-tela-vazia
+- Relógio da linha de raia (`00:00:00`) estourava a caixa e criava
+  scrollbar horizontal em telas largas — `--clock-size` com cap de 1.7rem
+  + `overflow-x: hidden` na lista
+- Select de tema do cabeçalho gigante (a opção "Beira de piscina" definia
+  a largura) — limitado a 8.5rem com fonte 0.85rem
+
+### Changed
+- Badge "✓ selecionado" vira só "✓" em telas ≤640px (a seleção já tem
+  borda + anel)
+- Dica do rodapé e tabela da Ajuda documentam o long-press
+  (Parar/RT segurar 3 s = Zerar)
+
 ## [v0.2.1] - 22/11/2026
 ### Added
 - E2E: check "modal cobre a viewport" via `getBoundingClientRect` — pega

@@ -5,12 +5,17 @@ import { msToDisplay, secondsLeft } from "./clock.js";
 import { THEME_OPTIONS } from "./themes.js";
 import { GP_MAP } from "./gamepad.js";
 import { sessionSummary } from "./state.js";
+import { haptic } from "./wake.js";
 
 export const els = {};
 const handlers = {};
 let flash = { text: "", until: 0 };
 let suppressClickUntil = 0;
 let confirmResolve = null;
+// Long-press do Parar: segurar ≥3s dispara Zerar (emit "reset").
+const STOP_HOLD_MS = 3000;
+let stopHoldTimer = null;
+let stopLongFired = false;
 // Conta eventos "close" que NÓS provocamos (via resolveConfirm). Um close
 // atrasado de uma sessão anterior não pode resolver/fechar a sessão atual.
 let expectedCloses = 0;
@@ -39,7 +44,7 @@ export function initUI() {
     "savedCount", "exportBtn", "clearHistoryBtn",
     "chronoName", "chronoConfig", "gpStatus", "soundBtn",
     "masterDisplay", "continuousDisplay", "chronoStateLine",
-    "startBtn", "stopBtn", "resetBtn", "summaryBtn", "chronoList",
+    "startBtn", "stopBtn", "summaryBtn", "chronoList",
     "summaryTitle", "summaryMeta", "summaryList",
     "backToChronoBtn", "discardBtn", "saveSessionBtn",
     "confirmDialog", "confirmTitle", "confirmMessage", "confirmCancelBtn", "confirmOkBtn",
@@ -100,8 +105,46 @@ export function initUI() {
 
   // Cronômetro.
   els.startBtn.addEventListener("click", () => emit("start"));
-  els.stopBtn.addEventListener("click", () => emit("stop"));
-  els.resetBtn.addEventListener("click", () => emit("reset"));
+  // Parar: toque curto = stop; segurar ≥3s = zerar (com confirmação).
+  const beginStopHold = () => {
+    if (els.stopBtn.disabled) return;
+    stopLongFired = false;
+    els.stopBtn.classList.add("holding");
+    stopHoldTimer = setTimeout(() => {
+      stopHoldTimer = null;
+      stopLongFired = true;
+      els.stopBtn.classList.remove("holding");
+      haptic(60);
+      emit("reset");
+    }, STOP_HOLD_MS);
+  };
+  const cancelStopHold = () => {
+    if (stopHoldTimer) {
+      clearTimeout(stopHoldTimer);
+      stopHoldTimer = null;
+    }
+    els.stopBtn.classList.remove("holding");
+  };
+  els.stopBtn.addEventListener("pointerdown", beginStopHold);
+  for (const ev of ["pointerup", "pointercancel", "pointerleave"]) {
+    els.stopBtn.addEventListener(ev, cancelStopHold);
+  }
+  els.stopBtn.addEventListener("click", () => {
+    if (stopLongFired) {
+      stopLongFired = false;
+      return;
+    }
+    emit("stop");
+  });
+  els.stopBtn.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && !e.repeat) {
+      e.preventDefault();
+      beginStopHold();
+    }
+  });
+  els.stopBtn.addEventListener("keyup", (e) => {
+    if (e.key === "Enter" || e.key === " ") cancelStopHold();
+  });
   els.summaryBtn.addEventListener("click", () => emit("openSummary"));
   els.soundBtn.addEventListener("click", () => emit("soundToggle"));
 
@@ -418,8 +461,11 @@ export function renderChronoFrame(state, now) {
       : "Iniciar"
     : "Iniciar";
   els.startBtn.disabled = allDone || frozenSel;
-  els.stopBtn.disabled = !state.masterRunning;
-  els.resetBtn.disabled = !state.sessionStartedAt && state.raias.every((r) => !r.startedAt && !r.tempos.length);
+  const hasData = Boolean(
+    state.sessionStartedAt || state.raias.some((r) => r.startedAt || r.tempos.length)
+  );
+  // Habilitado para Parar (rodando) ou para o long-press Zerar (pausado com dados).
+  els.stopBtn.disabled = !state.masterRunning && !hasData;
 }
 
 export function blinkMaster() {

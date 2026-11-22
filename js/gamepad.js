@@ -19,12 +19,13 @@ export const GP = {
 
 export const GP_DEBOUNCE_MS = 200;
 export const GP_HOME_LONG_MS = 700;
+export const GP_ZERAR_LONG_MS = 3000;
 const NO_PAD_POLL_MS = 500;
 
 // Tabela exibida na Ajuda — mapeamento real deste app.
 export const GP_MAP = [
   { btn: "LT (6)", fora: "—", chrono: "Iniciar / Split", dialogo: "—" },
-  { btn: "RT (7)", fora: "—", chrono: "Parar / finalizar repetição", dialogo: "—" },
+  { btn: "RT (7)", fora: "—", chrono: "Parar · segurar ≥3 s = Zerar", dialogo: "—" },
   { btn: "A (0)", fora: "Avançar passo da config", chrono: "—", dialogo: "Confirmar" },
   { btn: "B (1)", fora: "Voltar", chrono: "Sair (confirma descarte)", dialogo: "Cancelar" },
   { btn: "X (2)", fora: "—", chrono: "Abrir Resumo (Salvar/Descartar)", dialogo: "Ação primária" },
@@ -51,6 +52,8 @@ export function initGamepad({ getContext, onAction, onStatus }) {
   let lastPadId = "";
   let homeStart = 0;
   let homeFired = false;
+  let rtStart = 0;
+  let rtFired = false;
   let lastPollAt = 0;
   let currentPad = null;
   let destroyed = false;
@@ -79,6 +82,8 @@ export function initGamepad({ getContext, onAction, onStatus }) {
         pressed.clear();
         homeStart = 0;
         homeFired = false;
+        rtStart = 0;
+        rtFired = false;
         priming = true;
         status(null);
       } else if (now - lastPollAt >= NO_PAD_POLL_MS) {
@@ -162,6 +167,26 @@ export function initGamepad({ getContext, onAction, onStatus }) {
       }
     }
 
+    // 3.5) RT (7) — tap curto = Parar; segurado ≥3 s = Zerar (com confirmação).
+    //    Espelha o padrão do Home: edge inicia, hold decide no release/fire.
+    if (novos.includes(GP.rt)) {
+      rtStart = now;
+      rtFired = false;
+    }
+    if (rtStart > 0) {
+      const held = pressed.get(GP.rt);
+      if (held && !rtFired && now - rtStart >= GP_ZERAR_LONG_MS) {
+        rtFired = true;
+        if (inChrono) acionar("zerar", now);
+      }
+      if (!held) {
+        const dur = now - rtStart;
+        rtStart = 0;
+        if (!rtFired && dur < GP_ZERAR_LONG_MS && inChrono) acionar("parar", now);
+        rtFired = false;
+      }
+    }
+
     // 4) Rotador por contexto.
     if (inDialog) {
       if (novos.includes(GP.a)) acionar("confirm", now);
@@ -175,7 +200,6 @@ export function initGamepad({ getContext, onAction, onStatus }) {
 
     if (inChrono) {
       if (novos.includes(GP.lt)) acionar("iniciar", now);
-      if (novos.includes(GP.rt)) acionar("parar", now);
       if (novos.includes(GP.b)) acionar("sair", now);
       if (novos.includes(GP.view)) acionar("sair", now);
       if (novos.includes(GP.x)) acionar("resumo", now);

@@ -467,6 +467,14 @@ input {
   flex-wrap: wrap;
 }
 
+/* Select do tema no cabeçalho: sem isso a opção mais larga
+   ("Beira de piscina") define a largura e o controle fica enorme. */
+.chrono-header-actions .select-sm {
+  width: 8.5rem;
+  max-width: 8.5rem;
+  font-size: 0.85rem;
+}
+
 .gp-badge {
   font-size: 0.72rem;
   font-weight: 700;
@@ -598,6 +606,35 @@ input {
   }
 }
 
+/* Long-press do Parar: preenchimento em 3s antes de disparar Zerar. */
+#stopBtn {
+  position: relative;
+  overflow: hidden;
+}
+
+#stopBtn.holding::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 0.35);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: stopHoldFill 3s linear forwards;
+  pointer-events: none;
+}
+
+@keyframes stopHoldFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Exceção: o fill é informação (progresso), não decoração — não pode ser
+   anulado pelo reset global de prefers-reduced-motion em tokens.css. */
+#stopBtn.holding::after {
+  animation-duration: 3s !important;
+}
+
 /* Lista de raias */
 .raia-list {
   list-style: none;
@@ -606,6 +643,7 @@ input {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
@@ -637,6 +675,14 @@ input {
   font-weight: 800;
   color: var(--blue);
   white-space: nowrap;
+}
+
+/* Telas estreitas: badge curto — a seleção já tem borda + anel. */
+@media (max-width: 640px) {
+  .raia.selected::after {
+    content: "✓";
+    font-size: 0.95rem;
+  }
 }
 
 .raia.resting {
@@ -743,10 +789,13 @@ input {
 }
 
 .raia-clock {
-  font-size: var(--clock-size);
+  /* Cap em 1.7rem: --clock-size chega a 2.5rem em telas largas e o
+     "00:00:00" estourava a linha da raia em paisagem. */
+  font-size: min(var(--clock-size), 1.7rem);
   font-weight: 700;
   line-height: 1.05;
   color: var(--text-strong);
+  white-space: nowrap;
 }
 
 .raia-clock.rest-count {
@@ -1055,7 +1104,8 @@ code {
       "displays displays"
       "state state"
       "controls controls"
-      "list hint";
+      "list list"
+      "hint hint";
     grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
     overflow: hidden;
   }
