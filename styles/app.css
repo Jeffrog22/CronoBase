@@ -4,6 +4,12 @@
   box-sizing: border-box;
 }
 
+/* O UA [hidden] deste Edge não usa !important — autor .screen{display:flex}
+   vencia e mantinha telas/banner/toast empilhados (bodyScroll + scrollbar). */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -218,6 +224,7 @@ input {
 
 .field-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   align-items: flex-end;
 }
@@ -570,25 +577,24 @@ input {
   flex-wrap: wrap;
 }
 
-/* Largura natural dos botões: o par Iniciar/Parar fica centralizado
-   com gap fixo de ~5cm entre eles (compensa o gap flex de 0.5rem). */
+/* Mobile-first: botões dividem a largura em partes iguais (gap 0.5rem). */
 .chrono-controls .btn-xl {
-  flex: 0 1 auto;
+  flex: 1 1 0;
 }
 
 #startBtn {
-  margin-right: calc(5cm - 0.5rem);
+  margin-right: 0;
 }
 
-/* Telas ≤640px: 5cm não cabe na linha — volta ao layout antigo
-   (botões dividem a largura em partes iguais, gap 0.5rem). */
-@media (max-width: 640px) {
-  #startBtn {
-    margin-right: 0;
+/* ≥641px: 5cm cabe na linha — par Iniciar/Parar centralizado com gap
+   fixo de ~5cm entre eles (compensa o gap flex de 0.5rem). */
+@media (min-width: 641px) {
+  .chrono-controls .btn-xl {
+    flex: 0 1 auto;
   }
 
-  .chrono-controls .btn-xl {
-    flex: 1 1 0;
+  #startBtn {
+    margin-right: calc(5cm - 0.5rem);
   }
 }
 
@@ -818,6 +824,7 @@ input {
 
 .summary-item-head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem;
   font-weight: 700;

@@ -3,7 +3,7 @@
 // automático). A ativação só acontece quando a página pede, e a página só
 // pede quando não há sessão em andamento (ou o usuário confirma o risco).
 
-const VERSION = "cronobase-v1";
+const VERSION = "cronobase-v2";
 const CORE = [
   "./",
   "./index.html",
@@ -50,25 +50,6 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
-async function cacheFirst(request) {
-  const cached = await caches.match(request, { ignoreSearch: false });
-  if (cached) return cached;
-  try {
-    const response = await fetch(request);
-    if (response && response.ok && response.type === "basic") {
-      const cache = await caches.open(VERSION);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (err) {
-    if (request.mode === "navigate") {
-      const fallback = await caches.match("./index.html");
-      if (fallback) return fallback;
-    }
-    throw err;
-  }
-}
-
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
@@ -89,11 +70,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   if (new URL(request.url).origin !== self.location.origin) return;
 
-  // Navegações: rede primeiro (pega atualizações), cache como fallback offline.
-  if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request));
-    return;
-  }
-  // Assets: cache primeiro (estáveis), rede atualiza o cache em seguida.
-  event.respondWith(cacheFirst(request));
+  // Tudo same-origin: rede primeiro (sempre código atual quando online),
+  // cache como fallback offline. Evita cache híbrido HTML novo + JS/CSS velho.
+  event.respondWith(networkFirst(request));
 });

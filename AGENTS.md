@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — cronômetro como modal <dialog> colado ao topo (v0.2.0) -->
+﻿<!-- última-sessão: 22/11/2026 — fix do modal (cache SW + [hidden]) + CSS mobile-first (v0.2.1) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.2.0
+- **Versão atual:** v0.2.1
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -73,10 +73,12 @@ Regras:
 - **Corrida clássica no diálogo de confirmação (corrigida em v0.1.0):** o evento `close` de um `dialog.close()` pode ser processado com atraso (task queue). Antes da correção, um `close` atrasado do Zerar resolvia/fechava a sessão de confirmação do Salvar — sintoma: `confirmDialog.open=false` logo após abrir, sem nenhum erro no console. A correção usa um contador `expectedCloses` em `js/ui.js` que consome fechamentos intencionais. **Não remover esse contador.**
 - **Regra do motor:** distância < 50 m nunca registra split; descanso usa wall-clock (`waitEndsAt`), não decremento fixo; quando faltam ≤10 s para um descanso e outro está vencido, ambos liberam juntos ("Aguardando…" congela a raia vencida); seleção automática é round-robin só entre raias ativas (não concluídas/descansando).
 - **Service Worker nunca ativa versão sozinha** (sem `skipWaiting` automático): atualização só via banner + confirmação, e bloqueada se houver sessão não salva. `/sw.js` precisa de `Cache-Control: no-cache` (já em `_headers`).
+- **Cache do SW (lição v0.2.1):** toda release que mudar JS/CSS/HTML **deve bumpar `VERSION` do `sw.js`** (senão o navegador nem detecta a atualização) — mas o plano de rede é `networkFirst` para **todos** os assets same-origin (nunca `cacheFirst`): quem está online sempre recebe código atual, cache só serve de fallback offline. Isso evita o cache híbrido (HTML novo + JS/CSS antigos) que deixou o modal "não abrir". `registerSW` usa `{ updateViaCache: "none" }` para revalidar `sw.js` mesmo com HTTP cache.
+- **`[hidden]` precisa de regra autor:** neste Edge o UA `[hidden]` **não** usa `!important`, então `.screen { display: flex }` (autor) vencia o `hidden` — telas config/resumo, update-banner e toast ficavam empilhados (bodyScroll + scrollbar de 15px comendo largura do modal). `styles/app.css` tem `[hidden] { display: none !important }` — **não remover**. E2E valida com o check "modal cobre a viewport".
 - **Testes E2E rodam em navegador headless** com `--dump-dom` e `--virtual-time-budget`; o runner precisa de `spawn` **assíncrono** (spawnSync bloqueia o event loop e o servidor HTTP local morre de fome — o Edge trava até o timeout).
 - **`npm run check`** = sintaxe (`node --check`) de todos os módulos; **`npm test`** = lógica + E2E. Ambos verdes antes de qualquer commit.
 - **O cronômetro é um `<dialog>` modal (`#screen-chrono`)**, não mais `<section hidden>`: abre via `showModal()` em `showScreen()` (js/ui.js), fecha via `close()`, e usa atributo `open` (não `hidden`). `Esc` dispara `cancel` → `preventDefault` → `exitChrono` (confirmação obrigatória). O `#toast` é movido para dentro do dialog enquanto aberto (top layer fica acima de qualquer `z-index` do body) e devolvido ao `<body>` ao sair. **Não usar `hidden` nesse elemento.**
-- **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono`, centralizada, com `#startBtn { margin-right: calc(5cm - 0.5rem) }` (gap real de 5cm entre Iniciar/Parar). Em telas ≤ 640px a media query zera a margem e volta `flex: 1 1 0` (5cm não cabe). Safe-area-inset-top está no `.chrono-controls`, não mais no `.chrono-header`.
+- **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono`, centralizada. **Mobile-first (v0.2.1)**: a base usa larguras iguais (`flex: 1 1 0`, `#startBtn { margin-right: 0 }`) e `@media (min-width: 641px)` aplica o gap de 5cm (`#startBtn { margin-right: calc(5cm - 0.5rem) }`, `flex: 0 1 auto`). Safe-area-inset-top está no `.chrono-controls`, não mais no `.chrono-header`.
 
 ---
 
@@ -160,4 +162,36 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 29/29 E2E — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Fix do modal (cache SW + [hidden]) + CSS mobile-first (v0.2.1)
+
+### O que foi feito
+- **Diagnóstico do bug "modal não apareceu/não sobrepos"**: SW antigo em `localhost:8080` com `cacheFirst` em JS/CSS → HTML novo (`<dialog>`) + `ui.js` antigo (nunca chama `showModal`) + CSS antigo → dialog inline sem backdrop. Causa raiz dupla confirmada por probe headless: (1) `sw.js` sem bump de `VERSION` desde v0.1.0; (2) UA `[hidden]` deste Edge não usa `!important` → `.screen{display:flex}` mantinha config (765px) + summary (488px) + update-banner empilhados → bodyScroll 1253 → scrollbar 15px → modal com 741 de 756px
+- `sw.js`: `VERSION` → `cronobase-v2`; remove `cacheFirst`; **todos** os assets same-origin usam `networkFirst` (rede primeiro, cache offline)
+- `js/main.js`: `register("sw.js", { updateViaCache: "none" })` — revalida sw.js mesmo com HTTP cache do `python http.server`
+- `styles/app.css`: regra autor `[hidden] { display: none !important }`; inverte a MQ do gap 5cm (base mobile `flex:1 1 0` + `margin-right:0`, `@media (min-width: 641px)` aplica o gap); `flex-wrap: wrap` em `.field-row` e `.summary-item-head`
+- `styles/tokens.css`: `--touch` 48→56px (PRD ≥56px); `--master-size`/`--clock-size` com `clamp()` (2.6–3.5rem / 1.7–2.5rem); pool mantém fixos
+- E2E: novo check "modal cobre a viewport" (`getBoundingClientRect` vs `innerWidth/innerHeight`) — pega regressão de modal open mas inline/parcial
+- CHANGELOG v0.2.1 + este registro
+
+### Decisões
+- `networkFirst` global em vez de só bumpar VERSION: app pequeno, online = sempre código atual, VERSION ainda bumpado para o banner/limpeza de cache
+- Correção do `[hidden]` entrou no mesmo commit (pré-existente desde v0.1.0, mascarado porque o E2E só checava propriedades, não visibilidade)
+- Gap 5cm mantido como enhancer `min-width: 641px` (mesmo breakpoint, metodologia invertida — zero mudança de comportamento)
+
+### Arquivos
+- `sw.js`
+- `js/main.js`
+- `styles/app.css`
+- `styles/tokens.css`
+- `tests/e2e-checks.js`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 30/30 E2E — verde (modal 756x488 = viewport exata, bodyScroll 488)
 - Não há backend (app 100% estática)

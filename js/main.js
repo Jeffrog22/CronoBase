@@ -388,7 +388,7 @@ function handleGamepadAction(action) {
 function registerSW() {
   if (!("serviceWorker" in navigator)) return;
   navigator.serviceWorker
-    .register("sw.js")
+    .register("sw.js", { updateViaCache: "none" })
     .then((reg) => {
       session.reg = reg;
       reg.addEventListener("updatefound", () => {

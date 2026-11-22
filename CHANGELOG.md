@@ -18,6 +18,34 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.2.1] - 22/11/2026
+### Added
+- E2E: check "modal cobre a viewport" via `getBoundingClientRect` — pega
+  regressão de modal `open` mas inline/parcial
+
+### Changed
+- CSS mobile-first: o gap fixo de ~5cm entre Iniciar/Parar virou enhancer
+  `@media (min-width: 641px)` — a base (mobile) usa larguras iguais
+- `flex-wrap: wrap` em `.field-row` e `.summary-item-head` (rows empilham
+  em telas estreitas)
+- `--touch` de 48px para 56px (PRD recomenda alvos ≥56px)
+- Relógios mestre/contínuo com `clamp()` — escalam com a largura da tela
+  (2.6–3.5rem e 1.7–2.5rem) em vez de tamanho fixo
+
+### Fixed
+- Modal do cronômetro não abria/sobrepor em máquinas com SW antigo: cache
+  híbrido do Service Worker (HTML novo + JS/CSS antigos, `VERSION` sem bump
+  desde v0.1.0) — `sw.js` vai para `cronobase-v2` e **todos** os assets
+  same-origin passam a `networkFirst` (rede primeiro, cache só offline)
+- Atributo `hidden` não escondia elementos com `display` declarado pelo autor
+  (neste Edge o UA `[hidden]` não usa `!important`): telas config/resumo,
+  update-banner e toast ficavam empilhados no body — gerava scrollbar de
+  15px e modal com largura parcial — corrigido com
+  `[hidden] { display: none !important }` em `styles/app.css`
+- `registerSW` passa `updateViaCache: "none"` — o navegador revalida `sw.js`
+  a cada navegação mesmo com HTTP cache (essencial no `python http.server`,
+  que não envia `Cache-Control: no-cache`)
+
 ## [v0.2.0] - 22/11/2026
 ### Added
 - Cronômetro abre como `<dialog>` modal colado ao topo da viewport (largura

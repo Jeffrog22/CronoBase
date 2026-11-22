@@ -41,6 +41,11 @@ async function run() {
     check($("stepPanel3").classList.contains("active"), "navegação de passos");
     $("startWorkoutBtn").click();
     check($("screen-chrono").open, "tela do cronômetro abriu");
+    const cr = $("screen-chrono").getBoundingClientRect();
+    check(
+      cr.top <= 1 && cr.left <= 1 && cr.width >= window.innerWidth - 2 && cr.height >= window.innerHeight - 2,
+      `modal cobre a viewport [top=${cr.top.toFixed(1)} left=${cr.left.toFixed(1)} size=${cr.width.toFixed(0)}x${cr.height.toFixed(0)} vp=${window.innerWidth}x${window.innerHeight} bodyScroll=${document.body.scrollHeight}]`
+    );
     check(document.querySelectorAll("#chronoList .raia").length === 2, "2 raias renderizadas");
     check($("startBtn").textContent === "Iniciar", "botão mostra Iniciar");
     check($("gpStatus").textContent.includes("desect") || $("gpStatus").textContent.includes("desconect"), "status GameSir visível");
