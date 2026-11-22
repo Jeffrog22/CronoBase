@@ -42,7 +42,7 @@ O repositório já contém o arquivo `_headers` na raiz. O Cloudflare Pages o ap
 Pontos importantes:
 
 - **`/sw.js` com `Cache-Control: no-cache`** — essencial para que o navegador sempre verifique atualizações do service worker. Sem isso, usuários ficam presos na versão antiga.
-- Os demais assets são servidos com o cache padrão do Pages; o próprio service worker controla a cache local do app (`cacheFirst`).
+- Os demais assets são servidos com o cache padrão do Pages; o próprio service worker controla a cache local do app (`networkFirst` — rede primeiro, cache só como fallback offline, desde v0.2.1).
 
 > Se editar `_headers`, o próximo deploy já aplica. Não há passo manual adicional.
 
