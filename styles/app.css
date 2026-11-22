@@ -89,6 +89,18 @@ input {
   text-overflow: ellipsis;
 }
 
+.brand-version {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  margin-left: 0.45rem;
+  white-space: nowrap;
+}
+
 .topbar-actions {
   display: flex;
   align-items: center;

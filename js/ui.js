@@ -4,7 +4,7 @@
 import { msToDisplay, secondsLeft } from "./clock.js";
 import { THEME_OPTIONS } from "./themes.js";
 import { GP_MAP } from "./gamepad.js";
-import { sessionSummary } from "./state.js";
+import { sessionSummary, APP_VERSION } from "./state.js";
 import { haptic } from "./wake.js";
 
 export const els = {};
@@ -41,9 +41,9 @@ export function initUI() {
     "cfgNome", "cfgEstilo", "cfgDistancia", "cfgRepeticoes", "cfgDescanso", "cfgSeries", "cfgIntervalo",
     "novoAtleta", "addAtletaBtn", "atletasList", "atletasHint", "distHint",
     "prevStepBtn", "nextStepBtn", "startWorkoutBtn",
-    "savedCount", "exportBtn", "clearHistoryBtn",
-    "chronoName", "chronoConfig", "gpStatus", "soundBtn",
-    "masterDisplay", "continuousDisplay", "chronoStateLine",
+        "savedCount", "exportBtn", "clearHistoryBtn",
+    "brandVersion",
+    "chronoName", "chronoConfig", "gpStatus", "soundBtn",    "masterDisplay", "continuousDisplay", "chronoStateLine",
     "startBtn", "stopBtn", "summaryBtn", "chronoList",
     "summaryTitle", "summaryMeta", "summaryList",
     "backToChronoBtn", "discardBtn", "saveSessionBtn",
@@ -51,6 +51,9 @@ export function initUI() {
     "toast", "updateBanner", "updateBtn", "updateDismissBtn",
   ];
   for (const id of ids) els[id] = $(id);
+
+  // Tag de versão discreta ao lado do nome do app (top bar da config).
+  els.brandVersion.textContent = `v${APP_VERSION}`;
 
   // Tema: três selects espelhados.
   for (const sel of [els.themeSelect, els.themeSelectChrono, els.themeSelectSummary]) {
