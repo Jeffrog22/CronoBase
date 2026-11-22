@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Sincronização da versão exibida (v0.5.2) -->
+﻿<!-- última-sessão: 22/11/2026 — Modal reestruturado conforme mockup (v0.6.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.5.2
+- **Versão atual:** v0.6.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -346,4 +346,37 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 38/38 E2E — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Modal reestruturado conforme mockup do usuário (v0.6.0)
+
+### O que foi feito
+- Usuário forneceu HTML exportado do Figma ("a experiência do usuário seja esta") e definiu: ignorar chrome do celular (status bar/home indicator), manter state line discreta, `?` no canto inferior direito, botões Iniciar=azul/Parar=vermelho/Resumo=**cinza**
+- `index.html`: reestrutura `#screen-chrono` em 2 rows + rodapé — Row 1 `.chrono-controls` com 3 zonas (`#summaryBtn` cinza à esquerda · `.controls-center` com Iniciar/Parar (gap ~5cm ≥641px) · `.controls-right` com display `Sessão contínua` + `#gpStatus` + `#soundBtn`); Row 2 `.chrono-header` com título à esquerda, **card mestre ao centro** e `#themeSelectChrono` à direita; `#helpBtnChrono` sai do cabeçalho para `.chrono-footer` (absolute, canto inf. direito, safe-area); `masterLabel` → "SÉRIE · MESTRE"
+- `styles/app.css`: header vira grid `1fr auto 1fr` ≥641px (card centralizado de verdade) e flex-wrap com `order` no mobile (card em linha própria, `margin:0 auto`); state-line 0.75rem; footer com border-top + hint com padding p/ não passar por baixo do `?`; raia selecionada `border-width:4px`; `.display-label` ganha `text-transform:uppercase`; grid de paisagem perde a área `"displays"` e ganha compressão da row 1 (fontes/gaps/pill menores p/ caber **uma linha** em 776px — sem isso a lista de raias ficava com ~0px de altura); `#summaryBtn` cinza via `--surface-2`
+- `tests/e2e-checks.js`: ordem paisagem agora `controles → cabeçalho → lista` (`.chrono-displays` não existe mais) + check novo `? no canto inferior direito (help.top ≥ list.bottom)`
+- `APP_VERSION`/`package.json` → 0.6.0 (display == tag do feat)
+- CHANGELOG v0.6.0 + este registro
+
+### Decisões
+- Estado do modal preservado por **IDs** (`startBtn`, `masterDisplay`, etc.) — `js/ui.js`/`js/main.js` **zero mudança**; mudança é HTML+CSS+1 check
+- `.controls-center { flex: 1 1 0 }` (basis 0) garante que em telas estreitas só o grupo da direita quebra p/ 2ª linha, mantendo Resumo·Iniciar·Parar juntos na 1ª
+- Gap 5cm mantido como requisito (v0.2.1); compressão em paisagem usa fonte/padding menores para o par caber, sem reduzir o gap
+- Chrome do Figma (10:45/5G/bateria/home indicator) ignorado — decisão do usuário
+- Screenshots de validação: `--screenshot` do Edge headless era **não-confiável** (capturava estado com perfil reutilizado/sel=0 — artefato, não bug do app; `diag` via `--dump-dom` provou modal abre e permanece); solução final: **CDP puro** (`--remote-debugging-port` + WebSocket do Node 24 + `Page.captureScreenshot` só após `screen-chrono.open===true`) — scripts em `%TEMP%\opencode\` (fora do repo)
+
+### Arquivos
+- `index.html`
+- `styles/app.css`
+- `tests/e2e-checks.js`
+- `js/state.js`
+- `package.json`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + **39/39 E2E** — verde (novo check do `?`)
 - Não há backend (app 100% estática)

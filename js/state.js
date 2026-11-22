@@ -14,7 +14,7 @@ export const DEFAULT_CONFIG = {
 export const ESTILOS = ["Crawl", "Costas", "Peito", "Medley", "Livre", "Outro"];
 export const DISTANCIAS = [25, 50, 75, 100, 150, 200, 400];
 
-export const APP_VERSION = "0.5.2";
+export const APP_VERSION = "0.6.0";
 
 /** Singleton do estado da sessão (mantido em memória durante a sessão). */
 export const state = {

@@ -126,9 +126,19 @@
     <!-- ======================= CRONÔMETRO ======================= -->
     <dialog id="screen-chrono" class="screen">
       <div class="chrono-controls">
-        <button id="startBtn" class="btn btn-primary btn-xl">Iniciar</button>
-        <button id="stopBtn" class="btn btn-danger btn-xl">Parar</button>
-        <button id="summaryBtn" class="btn btn-success btn-xl">Resumo</button>
+        <button id="summaryBtn" class="btn btn-secondary btn-xl">Resumo</button>
+        <div class="controls-center">
+          <button id="startBtn" class="btn btn-primary btn-xl">Iniciar</button>
+          <button id="stopBtn" class="btn btn-danger btn-xl">Parar</button>
+        </div>
+        <div class="controls-right">
+          <div class="display display-continuous">
+            <span class="display-label">Sessão contínua</span>
+            <span class="display-value clock display-value-sm" id="continuousDisplay">00:00:00</span>
+          </div>
+          <span id="gpStatus" class="gp-badge gp-off" title="Status do controle GameSir">GameSir: —</span>
+          <button id="soundBtn" class="btn btn-ghost btn-square" aria-label="Alternar som" title="Som do alerta">🔔</button>
+        </div>
       </div>
 
       <header class="chrono-header">
@@ -136,32 +146,23 @@
           <span id="chronoName" class="chrono-name">Treino</span>
           <span id="chronoConfig" class="chrono-config muted"></span>
         </div>
-        <div class="chrono-header-actions">
-          <span id="gpStatus" class="gp-badge gp-off" title="Status do controle GameSir">GameSir: —</span>
-          <button id="soundBtn" class="btn btn-ghost btn-square" aria-label="Alternar som" title="Som do alerta">🔔</button>
-          <select id="themeSelectChrono" class="select select-sm" aria-label="Selecionar tema"></select>
-          <button id="helpBtnChrono" class="btn btn-ghost btn-square" aria-label="Abrir ajuda" title="Ajuda">?</button>
-        </div>
-      </header>
-
-      <div class="chrono-displays">
         <div class="display display-master">
-          <span class="display-label" id="masterLabel">Série · mestre</span>
+          <span class="display-label" id="masterLabel">SÉRIE · MESTRE</span>
           <span class="display-value clock" id="masterDisplay">00:00:00</span>
         </div>
-        <div class="display display-continuous">
-          <span class="display-label">Sessão contínua</span>
-          <span class="display-value clock display-value-sm" id="continuousDisplay">00:00:00</span>
-        </div>
-      </div>
+        <select id="themeSelectChrono" class="select select-sm" aria-label="Selecionar tema"></select>
+      </header>
 
       <div id="chronoStateLine" class="state-line" aria-live="polite">Parado · toque em Iniciar</div>
 
       <ul id="chronoList" class="raia-list" aria-label="Atletas"></ul>
 
-      <p class="chrono-hint muted">
-        LT = Iniciar/Split · RT = Parar (segure 3 s = Zerar) · B = sair · X = resumo · Y = ajuda
-      </p>
+      <div class="chrono-footer">
+        <p class="chrono-hint muted">
+          LT = Iniciar/Split · RT = Parar (segure 3 s = Zerar) · B = sair · X = resumo · Y = ajuda
+        </p>
+        <button id="helpBtnChrono" class="btn btn-ghost btn-square help-float" aria-label="Abrir ajuda" title="Ajuda">?</button>
+      </div>
     </dialog>
 
     <!-- ======================= RESUMO ======================= -->

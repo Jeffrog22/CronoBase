@@ -18,6 +18,31 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.6.0] - 22/11/2026
+### Changed
+- **Modal do cronômetro reestruturado conforme mockup do usuário** (ordem e
+  agrupamento dos objetos, não só dimensões):
+  - **Row 1 (controles)**: `Resumo` (cinza) à esquerda · `Iniciar` (azul) ·
+    `Parar` (vermelho) centralizados com gap ~5cm · **Sessão contínua**
+    (kicker + dígitos) + pill GameSir + 🔔 à direita — tudo em uma linha
+    (compressão própria no modo paisagem; quebra para 2ª linha só em
+    telas estreitas)
+  - **Row 2 (cabeçalho)**: `Treino`/config à esquerda · **card mestre
+    `SÉRIE · MESTRE` ao centro** (grid `1fr auto 1fr` ≥641px, empilhado
+    centralizado no mobile) · select de tema à direita
+  - **State line** mantida, discreta (0.75rem)
+  - **Rodapé**: hint centralizado + botão `?` **flutuante no canto
+    inferior direito** (saída do cabeçalho), com safe-area
+  - Raias: selecionada com **borda 4px** + fundo `--blue-soft`
+  - Kickers dos displays em caixa alta (`SÉRIE · MESTRE`,
+    `SESSÃO CONTÍNUA`)
+- Chrome do mockup (status bar do celular e home indicator) **ignorado** —
+  é artefato do Figma, não faz parte do app
+
+### Removed
+- Wrapper `.chrono-displays` (contínuo migrou p/ row de controles; mestre
+  migrou p/ cabeçalho)
+
 ## [v0.3.1] - 22/11/2026
 ### Fixed
 - **Botões no topo em paisagem**: o grid `landscape + max-height:560px`

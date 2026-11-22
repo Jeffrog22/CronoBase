@@ -52,11 +52,16 @@ async function run() {
     check(sbRect.top <= 1, `botões rentes ao topo [startBtn.top=${sbRect.top.toFixed(1)}]`);
     if (gridOn) {
       const cRect = document.querySelector(".chrono-controls").getBoundingClientRect();
-      const dRect = document.querySelector(".chrono-displays").getBoundingClientRect();
       const hRect = document.querySelector(".chrono-header").getBoundingClientRect();
+      const lRect = $("chronoList").getBoundingClientRect();
       check(
-        cRect.top < dRect.top && dRect.top < hRect.top,
-        `ordem paisagem: botões → displays → cabeçalho [c=${cRect.top.toFixed(0)} d=${dRect.top.toFixed(0)} h=${hRect.top.toFixed(0)}]`
+        cRect.top < hRect.top && hRect.top < lRect.top,
+        `ordem paisagem: controles → cabeçalho → lista [c=${cRect.top.toFixed(0)} h=${hRect.top.toFixed(0)} l=${lRect.top.toFixed(0)}]`
+      );
+      const helpRect = $("helpBtnChrono").getBoundingClientRect();
+      check(
+        helpRect.top >= lRect.bottom - 2,
+        `? no canto inferior direito (após a lista) [help.top=${helpRect.top.toFixed(0)} list.bottom=${lRect.bottom.toFixed(0)}]`
       );
     }
     check(document.querySelectorAll("#chronoList .raia").length === 2, "2 raias renderizadas");
