@@ -46,6 +46,19 @@ async function run() {
       cr.top <= 1 && cr.left <= 1 && cr.width >= window.innerWidth - 2 && cr.height >= window.innerHeight - 2,
       `modal cobre a viewport [top=${cr.top.toFixed(1)} left=${cr.left.toFixed(1)} size=${cr.width.toFixed(0)}x${cr.height.toFixed(0)} vp=${window.innerWidth}x${window.innerHeight} bodyScroll=${document.body.scrollHeight}]`
     );
+    const gridOn = getComputedStyle($("screen-chrono")).display === "grid";
+    check(gridOn, `layout de paisagem (grid) ativo [vp=${window.innerWidth}x${window.innerHeight}]`);
+    const sbRect = $("startBtn").getBoundingClientRect();
+    check(sbRect.top <= 1, `botões rentes ao topo [startBtn.top=${sbRect.top.toFixed(1)}]`);
+    if (gridOn) {
+      const cRect = document.querySelector(".chrono-controls").getBoundingClientRect();
+      const dRect = document.querySelector(".chrono-displays").getBoundingClientRect();
+      const hRect = document.querySelector(".chrono-header").getBoundingClientRect();
+      check(
+        cRect.top < dRect.top && dRect.top < hRect.top,
+        `ordem paisagem: botões → displays → cabeçalho [c=${cRect.top.toFixed(0)} d=${dRect.top.toFixed(0)} h=${hRect.top.toFixed(0)}]`
+      );
+    }
     check(document.querySelectorAll("#chronoList .raia").length === 2, "2 raias renderizadas");
     const cl = $("chronoList");
     check(

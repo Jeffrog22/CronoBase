@@ -89,6 +89,7 @@ function runBrowser(browser) {
     "--disable-gpu",
     "--no-first-run",
     "--no-default-browser-check",
+    "--window-size=800,400",
     `--user-data-dir=${profileDir}`,
     "--enable-logging=stderr",
     "--v=0",

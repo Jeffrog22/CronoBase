@@ -580,7 +580,7 @@ input {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.55rem 0.9rem;
-  padding-top: calc(0.55rem + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
@@ -1100,10 +1100,10 @@ code {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
-      "header header"
-      "displays displays"
-      "state state"
       "controls controls"
+      "displays displays"
+      "header header"
+      "state state"
       "list list"
       "hint hint";
     grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;

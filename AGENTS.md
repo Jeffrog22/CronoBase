@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Zerar via long-press + fix do modal em paisagem (v0.3.0) -->
+﻿<!-- última-sessão: 22/11/2026 — Botões no topo em paisagem (v0.3.1) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.3.0
+- **Versão atual:** v0.3.1
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -80,7 +80,7 @@ Regras:
 - **O cronômetro é um `<dialog>` modal (`#screen-chrono`)**, não mais `<section hidden>`: abre via `showModal()` em `showScreen()` (js/ui.js), fecha via `close()`, e usa atributo `open` (não `hidden`). `Esc` dispara `cancel` → `preventDefault` → `exitChrono` (confirmação obrigatória). O `#toast` é movido para dentro do dialog enquanto aberto (top layer fica acima de qualquer `z-index` do body) e devolvido ao `<body>` ao sair. **Não usar `hidden` nesse elemento.**
 - **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono`, centralizada. **Mobile-first (v0.2.1)**: a base usa larguras iguais (`flex: 1 1 0`, `#startBtn { margin-right: 0 }`) e `@media (min-width: 641px)` aplica o gap de 5cm (`#startBtn { margin-right: calc(5cm - 0.5rem) }`, `flex: 0 1 auto`). Safe-area-inset-top está no `.chrono-controls`, não mais no `.chrono-header`.
 - **Zerar é long-press do Parar (v0.3.0)** — não existe `#resetBtn`. Segurar `stopBtn` ≥3s (`STOP_HOLD_MS` em ui.js) emite `reset` (confirmação); soltar antes = tap normal (`stopLongFired` engole o click subsequente). Gamepad RT espelha o padrão do Home (`GP_ZERAR_LONG_MS`): tap = parar, hold ≥3s = zerar. Parar pausado fica habilitado quando há dados (`hasData`); toque pausado → toast "Já pausado.". **Não remover `expectedCloses` nem o swallow do longFired.**
-- **Grid de paisagem (v0.3.0)**: `@media (orientation: landscape) and (max-height: 560px)` usa áreas `"list list"` + `"hint hint"` (lista em largura total, hint linha própria) — o antigo `"list hint"` 2-colunas espremia as raias e deixava metade da tela vazia. `.raia-clock` tem cap `min(var(--clock-size), 1.7rem)` + `overflow-x: hidden` na lista (sem isso o `00:00:00` criava scrollbar horizontal em tela larga).
+- **Grid de paisagem (v0.3.0, ordem v0.3.1)**: `@media (orientation: landscape) and (max-height: 560px)` usa áreas `"controls"` primeiro → `"displays"` → `"header"` → `"state"` → `"list list"` → `"hint hint"` (botões no topo, cabeçalho logo abaixo dos cronômetros, lista em largura total) — **nunca colocar `"header"` como 1ª linha** (v0.3.0 empurrava os botões para o meio da tela). `.chrono-controls` é **rente ao topo**: `padding-top: env(safe-area-inset-top)` (sem respiro de 0.55rem; o safe-area só afasta de notch/status bar em retrato PWA). `.raia-clock` tem cap `min(var(--clock-size), 1.7rem)` + `overflow-x: hidden` na lista (sem isso o `00:00:00` criava scrollbar horizontal em tela larga).
 
 ---
 
@@ -231,4 +231,35 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 35/35 E2E — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Botões no topo em paisagem (v0.3.1)
+
+### O que foi feito
+- **Diagnóstico**: no print do usuário os botões ficavam no meio da tela em paisagem — o grid do media query `landscape + max-height:560px` listava `"header"` como 1ª área; em retrato a ordem já estava correta (`.chrono-controls` é o 1º filho do DOM)
+- **Grid reordenado** (`styles/app.css`): `"controls"` → `"displays"` → `"header"` → `"state"` → `"list list"` → `"hint hint"` — botões no topo, cabeçalho (nome/GameSir/tema/som/ajuda) logo abaixo dos cronômetros, conforme pedido do usuário
+- **`.chrono-controls` rente ao topo**: `padding-top` de `calc(0.55rem + env(safe-area-inset-top))` → `env(safe-area-inset-top)` — zero de respiro nas duas orientações, safe-area continua protegendo notch/status bar em retrato PWA
+- **E2E em paisagem real**: runner ganha `--window-size=800,400` (vp776×308 ≤560 → grid ativo); checks novos: grid ativo, `startBtn.top ≤ 1` (rente) e ordem `controles < displays < cabeçalho`
+- **Fix de teste flaky** (`tests/logic.mjs`): `startMaster(state, Date.now())` seguido de `const t0 = Date.now()` — se o relógico tickasse entre as linhas, `split>=50` media 5001ms e `final` 12001ms (FAIL intermitente); agora `t0` é capturado antes e usado nos dois
+- CHANGELOG v0.3.1 + este registro
+
+### Decisões
+- Cabeçalho **abaixo dos displays** (não logo abaixo dos botões) — escolha explícita do usuário
+- Padding rente vale para as **duas orientações** (pedido: "não importa se retrato ou paisagem")
+- E2E fixado em 800×400 para sempre cobrir o cenário reportado (o check de `display: grid` acusa se o `--window-size` não pegar, mostrando o vp)
+- Print do usuário mostrava build antigo (botão Zerar avulso) — validar redeploy do `cronobase.pages.dev` após o push
+
+### Arquivos
+- `styles/app.css`
+- `tests/e2e-runner.mjs`
+- `tests/e2e-checks.js`
+- `tests/logic.mjs`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 38/38 E2E — verde (grid ativo vp=776x308, startBtn.top=0.0)
 - Não há backend (app 100% estática)

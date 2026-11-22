@@ -18,6 +18,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.3.1] - 22/11/2026
+### Fixed
+- **Botões no topo em paisagem**: o grid `landscape + max-height:560px`
+  agora começa pela linha `controls` (botões → displays → cabeçalho →
+  estado → lista → hint) — antes o cabeçalho vinha primeiro e empurrava
+  Iniciar/Parar/Resumo para o meio da tela
+- `.chrono-controls` **rente ao topo** nas duas orientações:
+  `padding-top` perde o respiro de 0.55rem e fica só
+  `env(safe-area-inset-top)` (notch/PWA)
+- Testes de lógica flaky: `startMaster` e `t0` compartilhavam `Date.now()`
+  em linhas distintas — viravam 5001ms/12001ms se o relógio tickasse
+  entre elas; agora usam o mesmo `t0`
+
+### Changed
+- E2E roda em `--window-size=800,400` (paisagem ≤560px) com checks novos:
+  grid de paisagem ativo, botões rentes ao topo (`startBtn.top ≤ 1`) e
+  ordem botões → displays → cabeçalho
+
 ## [v0.3.0] - 22/11/2026
 ### Added
 - **Zerar via long-press**: segurar o botão **Parar** por ≥3 s dispara o
