@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Botões no topo em paisagem (v0.3.1) -->
+﻿<!-- última-sessão: 22/11/2026 — Sincronização da versão exibida (v0.5.2) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.5.1
+- **Versão atual:** v0.5.2
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -322,4 +322,28 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 38/38 E2E — verde (grid ativo vp=776x308, startBtn.top=0.0, ordem c=0 d=70 h=189)
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Sincronização da versão exibida com as tags (v0.5.1/v0.5.2)
+
+### O que foi feito
+- **Diagnóstico**: o top bar exibia `v0.3.1` mesmo com a tag `v0.5.0` no repositório — `APP_VERSION` (`js/state.js`) e `"version"` (`package.json`) não tinham sido bumpadas desde a sessão v0.4.0
+- `APP_VERSION` → `0.5.1` + `package.json` → `0.5.1` no commit `fix:` (hook gerou a tag `v0.5.1`); em seguida bump para `0.5.2` neste registro de sessão (tag `v0.5.2` via hook)
+- `AGENTS.md`: "Versão atual" → v0.5.2; cabeçalho de última-sessão atualizado
+- `npm run check` + `npm test` verdes antes de cada commit
+
+### Decisões
+- `APP_VERSION` acompanha a tag do commit em que é commitada (exibir ≠ "próxima release"): o `post-commit` taggeia **todo** commit (inclusive `docs:`), então a única forma de display == tag é bumpar junto com cada tag nova
+- Dois commits (fix v0.5.1 + docs v0.5.2) em vez de um só: o fix foi validado e empurrado antes de escrever o registro, seguindo o ciclo done → commit → push
+
+### Arquivos
+- `js/state.js`
+- `package.json`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 38/38 E2E — verde
 - Não há backend (app 100% estática)
