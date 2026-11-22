@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Kebab menu, drag livre e 4 cards (v0.7.0) -->
+﻿<!-- última-sessão: 22/11/2026 — Sessão contínua no meio, sem gap 5cm (v0.8.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.7.0
+- **Versão atual:** v0.8.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -78,9 +78,9 @@ Regras:
 - **Testes E2E rodam em navegador headless** com `--dump-dom` e `--virtual-time-budget`; o runner precisa de `spawn` **assíncrono** (spawnSync bloqueia o event loop e o servidor HTTP local morre de fome — o Edge trava até o timeout).
 - **`npm run check`** = sintaxe (`node --check`) de todos os módulos; **`npm test`** = lógica + E2E. Ambos verdes antes de qualquer commit.
 - **O cronômetro é um `<dialog>` modal (`#screen-chrono`)**, não mais `<section hidden>`: abre via `showModal()` em `showScreen()` (js/ui.js), fecha via `close()`, e usa atributo `open` (não `hidden`). `Esc` dispara `cancel` → `preventDefault` → `exitChrono` (confirmação obrigatória). O `#toast` é movido para dentro do dialog enquanto aberto (top layer fica acima de qualquer `z-index` do body) e devolvido ao `<body>` ao sair. **Não usar `hidden` nesse elemento.**
-- **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono`, centralizada. **Mobile-first (v0.2.1)**: a base usa larguras iguais (`flex: 1 1 0`, `#startBtn { margin-right: 0 }`) e `@media (min-width: 641px)` aplica o gap de 5cm (`#startBtn { margin-right: calc(5cm - 0.5rem) }`, `flex: 0 1 auto`). Safe-area-inset-top está no `.chrono-controls`, não mais no `.chrono-header`.
+- **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono` (`position:relative` — ancora o `#kebabPanel`), com 3 zonas: `#summaryBtn` (cinza) à esquerda · `.controls-center` = **palco** `Iniciar · Sessão contínua · Parar` (`flex: 1 1 min-content`, `gap: 0.5rem`; basis min-content faz o trio parear com o Resumo na linha 1 e só o grupo da direita quebrar — basis 0 estourava a pílula em ~490px, basis auto deixava o Resumo sozinho em ~430px; ≤400px retrato comprime fontes/padding p/ manter 2 linhas) · `.controls-right` = pílula GameSir + kebab. **O gap de 5cm da v0.2.1 foi REMOVIDO em v0.8.0** (pedido do usuário — a Sessão contínua passou a ocupar o meio); `margin-right` do `#startBtn` não existe mais. Safe-area-inset-top está no `.chrono-controls`. O palco é o que o drag&drop de posição livre usa (`.controls-center.free` com `align-self: stretch`).
 - **Zerar é long-press do Parar (v0.3.0)** — não existe `#resetBtn`. Segurar `stopBtn` ≥3s (`STOP_HOLD_MS` em ui.js) emite `reset` (confirmação); soltar antes = tap normal (`stopLongFired` engole o click subsequente). Gamepad RT espelha o padrão do Home (`GP_ZERAR_LONG_MS`): tap = parar, hold ≥3s = zerar. Parar pausado fica habilitado quando há dados (`hasData`); toque pausado → toast "Já pausado.". **Não remover `expectedCloses` nem o swallow do longFired.**
-- **Grid de paisagem (v0.3.0, ordem v0.3.1)**: `@media (orientation: landscape) and (max-height: 560px)` usa áreas `"controls"` primeiro → `"displays"` → `"header"` → `"state"` → `"list list"` → `"hint hint"` (botões no topo, cabeçalho logo abaixo dos cronômetros, lista em largura total) — **nunca colocar `"header"` como 1ª linha** (v0.3.0 empurrava os botões para o meio da tela). `.chrono-controls` é **rente ao topo**: `padding-top: env(safe-area-inset-top)` (sem respiro de 0.55rem; o safe-area só afasta de notch/status bar em retrato PWA). `.raia-clock` tem cap `min(var(--clock-size), 1.7rem)` + `overflow-x: hidden` na lista (sem isso o `00:00:00` criava scrollbar horizontal em tela larga).
+- **Grid de paisagem (v0.3.0, ordem v0.3.1, áreas v0.7.0)**: `@media (orientation: landscape) and (max-height: 560px)` usa áreas `"controls"` → `"header"` → `"list list"` (state-line oculta e rodapé removido desde v0.7.0 — a altura toda vai para as raias, **4 cards sem scroll**) — **nunca colocar `"header"` como 1ª linha** (v0.3.0 empurrava os botões para o meio da tela). `.chrono-controls` é **rente ao topo**: `padding-top: env(safe-area-inset-top)` (sem respiro de 0.55rem; o safe-area só afasta de notch/status bar em retrato PWA). Raias em modo compacto (1 linha, `.raia-temps` escondido). `.raia-clock` tem cap `min(var(--clock-size), 1.7rem)` (1.05rem no paisagem) + `overflow-x: hidden` na lista (sem isso o `00:00:00` criava scrollbar horizontal em tela larga).
 
 ---
 
@@ -446,4 +446,59 @@ Regras:
 - `npm test`: 46/46 lógica + **51/51 E2E** — verde
 - Screenshots CDP (800×400 e 500×860): kebab aberto, 4 cards, sem
   rodapé — batem com o pedido
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Sessão contínua no meio, gap 5cm removido (v0.8.0)
+
+### O que foi feito
+- Usuário: "o botão parar está com a trava de 5cm… retire a delimitação
+  e isole o botão igual ao 'iniciar'; coloque 'sessão contínua' entre
+  os 2 botões"
+- `index.html`: `.display-continuous` sai de `.controls-right` e entra
+  em `.controls-center` **entre** `#startBtn` e `#stopBtn`; direita
+  fica só pílula GameSir + kebab
+- `styles/app.css`: apagado `@media (min-width:641px) { .controls-center
+  { gap: 5cm } }` (gap base 0.5rem em todas as larguras); `.controls-center`
+  `flex: 1 1 0 → 1 1 min-content` — **basis min-content é o ponto
+  crítico**: basis 0 sumia o palco do cálculo de wrap e a pílula
+  estourava p/ fora em ~490px; basis auto deixava o Resumo sozinho na
+  linha 1 em ~430px; min-content pareia Resumo+trio e quebra só o
+  grupo direito; seletores do card compacto repontados de
+  `.controls-right .display-continuous` → `.controls-center …` (base +
+  paisagem)
+- MQ nova `@media (max-width:400px) and (portrait)`: comprime fontes/
+  padding/gaps do trio (btn 1.05rem, gaps 0.4rem, dígitos do cont 0.9rem)
+  mantendo 2 linhas em 430/390px
+- E2E: +1 check `sessão contínua entre Iniciar e Parar` (ordem de rects);
+  **52 PASS**; `APP_VERSION`/`package.json` → 0.8.0
+- `AGENTS.md` Contexto Crítico: bullet da linha de controles e do grid
+  de paisagem reescritos (5cm removido; áreas `controls/header/list`)
+- CHANGELOG v0.8.0 + este registro
+
+### Decisões
+- Long-press do Parar (≥3s = Zerar) **mantido** — "isolar igual ao
+  Iniciar" foi entendido como espaçamento, não comportamento
+- Sondagem CDP com `Emulation.setDeviceMetricsOverride` (o
+  `--window-size` do headless tem piso ~500px e não serve p/ 360/390):
+  430→2 linhas, 390→2 linhas, 360→3 linhas, todos sem overflow
+- Drag&drop: palco continua `.controls-center` (agora com 3 itens) —
+  congelamento/só botões afetados, card re-centra sozinho (já era o
+  centro visual); `ui.js` sem mudança
+
+### Arquivos
+- `index.html`
+- `styles/app.css`
+- `tests/e2e-checks.js`
+- `js/state.js`
+- `package.json`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + **52/52 E2E** — verde
+- Screenshots CDP: `Resumo | Iniciar [cont] Parar | GameSir ⋮` nas duas
+  orientações, sem vazio de 5cm
 - Não há backend (app 100% estática)

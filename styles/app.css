@@ -568,12 +568,12 @@ input {
 }
 
 /* Contínuo dentro da row de controles: compacto (kicker + dígitos menores). */
-.controls-right .display-continuous {
+.controls-center .display-continuous {
   padding: 0.22rem 0.55rem;
   border-radius: 14px;
 }
 
-.controls-right .display-continuous .display-value-sm {
+.controls-center .display-continuous .display-value-sm {
   font-size: clamp(1rem, 2.6vw, 1.35rem);
 }
 
@@ -656,12 +656,15 @@ input {
   background: var(--border);
 }
 
-/* Zona central: Iniciar · Parar. flex-basis 0 preserva a quebra de linha
-   em telas estreitas (o grupo da direita vai p/ 2ª linha sem desmontar
-   o par de botões). É também o PALCO do drag&drop de posição livre. */
+/* Zona central: Iniciar · Sessão contínua · Parar. flex-basis min-content
+   garante: (1) o trio pareia com o Resumo na linha 1 e só o grupo da
+   direita quebra p/ linha 2 (basis 0 estourava a pílula pra fora em
+   ~490px; basis auto deixava o Resumo sozinho na linha 1 em ~430px);
+   (2) o palco inteiro conta no cálculo de quebra. É também o PALCO do
+   drag&drop de posição livre. */
 .controls-center {
   position: relative;
-  flex: 1 1 0;
+  flex: 1 1 min-content;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -802,16 +805,11 @@ input {
   padding: 0.5rem 1rem;
 }
 
-/* ≥641px: par Iniciar/Parar centralizado com gap fixo de ~5cm.
-   Gap no palco (não margin no botão) — sobrevive ao drag&drop que
-   inverte a ordem dos botões. */
+/* ≥641px: botões em largura natural (sem trava de gap — a Sessão
+   contínua ocupa o meio; v0.8.0 removeu o gap de 5cm da v0.2.1). */
 @media (min-width: 641px) {
   .controls-center .btn-xl {
     flex: 0 1 auto;
-  }
-
-  .controls-center {
-    gap: 5cm;
   }
 }
 
@@ -1350,15 +1348,15 @@ code {
     flex-wrap: nowrap;
   }
 
-  .controls-right .display-continuous {
+  .controls-center .display-continuous {
     padding: 0.2rem 0.5rem;
   }
 
-  .controls-right .display-continuous .display-label {
+  .controls-center .display-continuous .display-label {
     font-size: 0.65rem;
   }
 
-  .controls-right .display-continuous .display-value-sm {
+  .controls-center .display-continuous .display-value-sm {
     font-size: 1.1rem;
   }
 
@@ -1447,6 +1445,36 @@ code {
 
   .raia.selected::after {
     content: "✓";
+    font-size: 0.9rem;
+  }
+}
+
+/* Retrato estreito (≤400px): comprime o trio p/ o Resumo parear na
+   linha 1 — sem isso são 3 linhas (Resumo sozinho · trio · pílula).
+   Só fontes/padding/gaps; alturas de toque intactas. */
+@media (max-width: 400px) and (orientation: portrait) {
+  .chrono-controls {
+    gap: 0.4rem;
+  }
+
+  .chrono-controls .btn-xl {
+    font-size: 1.05rem;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .controls-center {
+    gap: 0.4rem;
+  }
+
+  .controls-center .display-continuous {
+    padding: 0.2rem 0.45rem;
+  }
+
+  .controls-center .display-continuous .display-label {
+    font-size: 0.65rem;
+  }
+
+  .controls-center .display-continuous .display-value-sm {
     font-size: 0.9rem;
   }
 }

@@ -18,6 +18,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.8.0] - 22/11/2026
+### Changed
+- **Sessão contínua movida para o MEIO dos botões**: row de controles
+  agora é `Resumo · Iniciar · [Sessão contínua] · Parar | GameSir · ⋮`
+  — o card sai de `.controls-right` para `.controls-center`
+- **Gap de 5cm entre Iniciar/Parar REMOVIDO** (trava da v0.2.1,
+  pedido do usuário): os botões ficam isolados com `gap: 0.5rem`
+  uniforme em todas as larguras; `margin-right`/`gap: 5cm` apagados
+- `.controls-center` ganha `flex-basis: min-content` — o trio inteiro
+  conta no cálculo de quebra de linha: Resumo + trio pareiam na linha 1
+  e só a pílula/kebab quebram p/ linha 2 (basis 0 estourava a pílula
+  para fora em ~490px; basis auto deixava o Resumo sozinho em ~430px)
+- Retrato ≤400px comprime fontes/padding do trio (1.05rem, gaps 0.4rem,
+  dígitos do contínuo 0.9rem) mantendo 2 linhas em 430/390px — 360px
+  cai p/ 3 linhas sem nenhum overflow (sondado via CDP: 430/390/360
+  com `scrollWidth ≤ innerWidth`)
+- E2E +1 check: `sessão contínua entre Iniciar e Parar` (rects na ordem)
+
 ## [v0.7.0] - 22/11/2026
 ### Added
 - **Menu kebab no lugar do 🔔** (row de controles): ícone de 3 pontos

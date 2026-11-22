@@ -1,6 +1,6 @@
 {
   "name": "cronobase",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "Cronômetro de treino PWA (Modo 2) da Fizapp — GameSir X5 Lite, três temas.",
   "type": "module",

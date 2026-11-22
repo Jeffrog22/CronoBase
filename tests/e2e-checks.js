@@ -50,6 +50,12 @@ async function run() {
     check(gridOn, `layout de paisagem (grid) ativo [vp=${window.innerWidth}x${window.innerHeight}]`);
     const sbRect = $("startBtn").getBoundingClientRect();
     check(sbRect.top <= 1, `botões rentes ao topo [startBtn.top=${sbRect.top.toFixed(1)}]`);
+    const contRect = document.querySelector(".display-continuous").getBoundingClientRect();
+    const stRect = $("stopBtn").getBoundingClientRect();
+    check(
+      sbRect.right <= contRect.left + 1 && contRect.right <= stRect.left + 1,
+      `sessão contínua entre Iniciar e Parar [start.right=${sbRect.right.toFixed(0)} cont=${contRect.left.toFixed(0)}→${contRect.right.toFixed(0)} stop.left=${stRect.left.toFixed(0)}]`
+    );
     if (gridOn) {
       const cRect = document.querySelector(".chrono-controls").getBoundingClientRect();
       const hRect = document.querySelector(".chrono-header").getBoundingClientRect();
