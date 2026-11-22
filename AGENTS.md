@@ -293,3 +293,33 @@ Regras:
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + 38/38 E2E — verde
 - Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Dimensionamento do modal aproximado ao modelo (v0.5.0)
+
+### O que foi feito
+- Ajuste de **dimensões apenas** no modal do cronômetro (`styles/app.css`), sem alterar a disposição dos objetos (ordem dos filhos de `#screen-chrono` preservada: controles → displays → cabeçalho → estado → lista → hint).
+- `.chrono-controls`: background superfície, botões `.btn-xl` mais altos (60px), fonte 1.15rem, peso 800, raio 16px. Mantém gap ~5cm entre Iniciar e Parar em telas largas e rente ao topo (`padding-top: env(safe-area-inset-top)`).
+- `.chrono-displays` / `.display` / `.display-continuous`: borda 2px, raio 24px, padding generoso, sombra suave (aproximando `.timer-main` / `.timer-side` do modelo).
+- `.display-label` (kicker): 0.85rem, peso 800, letter-spacing 0.04em, cor `#535d6b`.
+- `.display-value` (mestre): clamp até 4.2rem, peso 350, line-height 1.04, letter-spacing 0.04em, branco nowrap.
+- `.display-value-sm` (lado): clamp até 2.2rem, peso 350, line-height 1.04.
+- `.chrono-header`: alinhamento `flex-start`; `.chrono-name` 1.15rem peso 800; `.chrono-config` 0.95rem cor `#596474` com margem superior.
+- `.gp-badge`: pílula maior (0.85rem, padding 0.35rem 0.75rem, raio 28px).
+- Raias (`.raia`): gap 0.8rem, padding 0.55rem 0.75px; `.raia-lane` 1.25rem azul; `.raia-name` 1.05rem peso 800; `.raia-meta` 0.95rem cor `#596474`; `.raia-clock` peso 350, line-height 1.04, letter-spacing 0.04em; `.raia-tag` pílula raio 28px.
+- `.chrono-hint`: 0.85rem, peso 600.
+
+### Decisões
+- Disposição preservada intencionalmente: a experiência do usuário (fluxo dos objetos) foi mantida; apenas dimensões foram aproximadas ao modelo enviado.
+- Sem relógio do sistema na status bar do modal (fantasia/alegoria da imagem modelo).
+- Versão discreta mantida apenas no top bar da config (não no cabeçalho do modal).
+
+### Arquivos
+- `styles/app.css`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (11 módulos)
+- `npm test`: 46/46 lógica + 38/38 E2E — verde (grid ativo vp=776x308, startBtn.top=0.0, ordem c=0 d=70 h=189)
+- Não há backend (app 100% estática)
