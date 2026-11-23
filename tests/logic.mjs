@@ -6,6 +6,7 @@ import {
   selectAtleta, autoSelectNext, tickModo2, startLabel, reorderRaias,
 } from "../js/modo2.js";
 import { msToDisplay } from "../js/clock.js";
+import { buildXlsx, crc32 } from "../js/xlsx.js";
 
 let failures = 0;
 function ok(cond, msg) {
@@ -153,6 +154,71 @@ autoSelectNext(state, "a1");
 ok(state.selectedId === "a2", "autoSelect vai para a2");
 autoSelectNext(state, "a2");
 ok(state.selectedId === "a1", "autoSelect volta para a1 (round-robin)");
+
+// ---------------- XLSX (v0.9.0) ----------------
+function includesAscii(bytes, str) {
+  const needle = new TextEncoder().encode(str);
+  outer: for (let i = 0; i <= bytes.length - needle.length; i++) {
+    for (let j = 0; j < needle.length; j++) {
+      if (bytes[i + j] !== needle[j]) continue outer;
+    }
+    return true;
+  }
+  return false;
+}
+function countMatches(bytes, str) {
+  const needle = new TextEncoder().encode(str);
+  let n = 0;
+  for (let i = 0; i <= bytes.length - needle.length; i++) {
+    let hit = true;
+    for (let j = 0; j < needle.length; j++) {
+      if (bytes[i + j] !== needle[j]) {
+        hit = false;
+        break;
+      }
+    }
+    if (hit) n++;
+  }
+  return n;
+}
+
+const crc = crc32(new TextEncoder().encode("123456789"));
+ok(crc === 0xcbf43926, `crc32("123456789") = 0x${crc.toString(16)}`);
+
+const sample = buildXlsx([
+  {
+    id: "s1",
+    nome: 'Treino <A> & "B"',
+    savedAt: "2026-11-22T12:00:00.000Z",
+    registros: [
+      {
+        nome: "Ana",
+        raia: 1,
+        serie: 1,
+        estilo: "Crawl",
+        distancia: 50,
+        repeticoes: 4,
+        series: 1,
+        descanso: 30,
+        intervalo: 60,
+        tempos: ["00:01:00", "00:01:10"],
+        dataHora: "2026-11-22T12:00:00.000Z",
+      },
+    ],
+  },
+]);
+ok(sample[0] === 0x50 && sample[1] === 0x4b && sample[2] === 0x03 && sample[3] === 0x04, "xlsx começa com PK\\x03\\x04");
+ok(includesAscii(sample, "xl/workbook.xml"), "xlsx contém xl/workbook.xml");
+ok(includesAscii(sample, "xl/worksheets/sheet1.xml"), "xlsx contém sheet1");
+ok(includesAscii(sample, "&lt;A&gt;"), "escape XML de < e >");
+ok(includesAscii(sample, "&amp;"), "escape XML de &");
+ok(includesAscii(sample, "Atleta"), "cabeçalho da planilha presente");
+ok(countMatches(sample, "<row ") === 2, `1 registro → 2 rows (header+dado) [rows=${countMatches(sample, "<row ")}]`);
+
+const empty = buildXlsx([]);
+ok(empty[0] === 0x50 && empty[1] === 0x4b, "xlsx sem sessões ainda é ZIP válido");
+ok(includesAscii(empty, "sheetData"), "planilha vazia tem sheetData");
+ok(countMatches(empty, "<row ") === 1, "planilha vazia só tem header");
 
 console.log(failures === 0 ? "\nTODOS OS TESTES PASSARAM" : `\n${failures} FALHA(S)`);
 process.exit(failures === 0 ? 0 : 1);

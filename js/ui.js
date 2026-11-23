@@ -64,6 +64,95 @@ function applyBtnPos() {
     b.style.top = `${y}px`;
   }
 }
+
+// ---------- Alinhamento dos dois cronômetros (v0.9.0) ----------
+// A Sessão contínua é centrada dentro de .controls-center (zona entre
+// Resumo e badge+kebab) e o card mestre no centro do modal — centros
+// diferentes. Divide o delta entre os dois (palco + mestre), com clamp
+// ao espaço livre real para nunca sobrepor botões nem texto do título.
+function vertOverlap(a, b) {
+  return a.bottom > b.top + 1 && a.top < b.bottom - 1;
+}
+
+function alignDisplays() {
+  const chrono = els["screen-chrono"];
+  if (!chrono || !chrono.open) return;
+  const stage = els.startBtn && els.startBtn.closest(".controls-center");
+  const cont = stage && stage.querySelector(".display-continuous");
+  const mast = els.masterDisplay && els.masterDisplay.closest(".display-master");
+  if (!stage || !cont || !mast) return;
+
+  // Zera o transform antigo ANTES de medir — senão o delta acumula.
+  stage.style.transform = "";
+  mast.style.transform = "";
+  void chrono.offsetWidth; // reflow: medir com layout limpo
+
+  const c = cont.getBoundingClientRect();
+  const m = mast.getBoundingClientRect();
+  const delta = m.left + m.width / 2 - (c.left + c.width / 2);
+  if (Math.abs(delta) < 0.5) return;
+
+  // ---- clamp do palco (Iniciar/cont/Parar andam juntos) ----
+  const chronoR = chrono.getBoundingClientRect();
+  const startR = els.startBtn.getBoundingClientRect();
+  const stopR = els.stopBtn.getBoundingClientRect();
+  let roomR = Math.max(0, chronoR.right - stopR.right - 4);
+  let roomL = Math.max(0, startR.left - chronoR.left - 4);
+  const sumR = els.summaryBtn.getBoundingClientRect();
+  if (vertOverlap(startR, sumR)) {
+    roomL = Math.min(roomL, Math.max(0, startR.left - sumR.right - 4));
+  }
+  const rightZone = stage.parentElement && stage.parentElement.querySelector(".controls-right");
+  if (rightZone) {
+    const rz = rightZone.getBoundingClientRect();
+    if (vertOverlap(stopR, rz)) {
+      roomR = Math.min(roomR, Math.max(0, rz.left - stopR.right - 4));
+    }
+  }
+
+  // ---- clamp do mestre (não cobrir texto do título nem o select) ----
+  let tMin = Math.max(0, m.left - chronoR.left - 4) * -1;
+  let tMax = Math.max(0, chronoR.right - m.right - 4);
+  const header = mast.closest(".chrono-header");
+  const hr = header.getBoundingClientRect();
+  tMin = Math.max(tMin, Math.max(0, m.left - hr.left - 4) * -1);
+  tMax = Math.min(tMax, Math.max(0, hr.right - m.right - 4));
+  const titleEl = header.querySelector(".chrono-title");
+  if (titleEl) {
+    const tr0 = titleEl.getBoundingClientRect();
+    if (vertOverlap(m, tr0)) {
+      const range = document.createRange();
+      range.selectNodeContents(titleEl);
+      const tr = range.getBoundingClientRect();
+      // range pode passar do clip do ellipsis → prende na caixa do título.
+      const textRight = tr.width > 0 ? Math.min(tr.right, tr0.right) : tr0.right;
+      tMin = Math.max(tMin, -Math.max(0, m.left - textRight - 4));
+    }
+  }
+  const sel = els.themeSelectChrono;
+  if (sel) {
+    const sr = sel.getBoundingClientRect();
+    if (vertOverlap(m, sr)) {
+      tMax = Math.min(tMax, Math.max(0, sr.left - m.right - 4));
+    }
+  }
+
+  // Escolhe s de forma que t = s - delta caia em [tMin, tMax] e s em
+  // [-roomL, roomR] — clamp só do mestre quebrava a centrização (v0.9.0).
+  const sLow = Math.max(-roomL, tMin + delta);
+  const sHigh = Math.min(roomR, tMax + delta);
+  let s;
+  if (sLow > sHigh) {
+    // Conflito raro: prioriza não cobrir texto do mestre.
+    s = sHigh;
+  } else {
+    s = Math.max(sLow, Math.min(sHigh, delta / 2));
+  }
+  const t = s - delta;
+
+  stage.style.transform = `translateX(${s}px)`;
+  mast.style.transform = `translateX(${t}px)`;
+}
 // Long-press do Parar: segurar ≥3s dispara Zerar (emit "reset").
 const STOP_HOLD_MS = 3000;
 let stopHoldTimer = null;
@@ -88,14 +177,17 @@ export function initUI() {
   const ids = [
     "screen-config", "screen-chrono", "screen-summary",
     "themeSelect", "themeSelectChrono", "themeSelectSummary",
-    "helpBtn", "helpBtnChrono", "helpBtnSummary", "helpDialog", "helpCloseBtn", "gpTable", "gpDiag",
+    "helpBtnChrono", "helpDialog", "helpCloseBtn", "gpTable", "gpDiag",
     "stepPills", "stepPanel1", "stepPanel2", "stepPanel3",
     "cfgNome", "cfgEstilo", "cfgDistancia", "cfgRepeticoes", "cfgDescanso", "cfgSeries", "cfgIntervalo",
     "novoAtleta", "addAtletaBtn", "atletasList", "atletasHint", "distHint",
     "prevStepBtn", "nextStepBtn", "startWorkoutBtn",
-        "savedCount", "exportBtn", "clearHistoryBtn",
+    "savedCount",
+    "exportDialog", "exportCloseBtn", "exportList", "exportEmpty", "exportXlsxBtn",
     "brandVersion",
-    "chronoName", "chronoConfig", "gpStatus", "soundBtn", "kebabBtn", "kebabPanel",    "masterDisplay", "continuousDisplay", "chronoStateLine",
+    "chronoName", "chronoConfig", "gpStatus", "soundBtn",
+    "kebabBtn", "kebabPanel", "kebabBtnCfg", "kebabPanelCfg", "kebabBtnSum", "kebabPanelSum",
+    "masterDisplay", "continuousDisplay", "chronoStateLine",
     "startBtn", "stopBtn", "summaryBtn", "chronoList",
     "summaryTitle", "summaryMeta", "summaryList",
     "backToChronoBtn", "discardBtn", "saveSessionBtn",
@@ -211,36 +303,71 @@ export function initUI() {
     if (e.key === "Enter" || e.key === " ") cancelStopHold();
   });
   els.summaryBtn.addEventListener("click", () => emit("openSummary"));
-  els.soundBtn.addEventListener("click", () => emit("soundToggle"));
 
-  // ---------------- Kebab menu (som + ajuda) ----------------
-  const closeKebab = () => {
-    els.kebabPanel.hidden = true;
-    els.kebabBtn.setAttribute("aria-expanded", "false");
+  // ---------------- Kebab menus (som, ajuda, exportar, limpar) --------
+  // Controlador genérico: 3 kebabs (config, resumo, cronômetro) com o
+  // mesmo comportamento — toggle, click-fora, Esc fecha só o menu.
+  // Itens usam data-action e são tratados por delegação.
+  const KEBABS = [
+    { btn: "kebabBtn", panel: "kebabPanel" },
+    { btn: "kebabBtnCfg", panel: "kebabPanelCfg" },
+    { btn: "kebabBtnSum", panel: "kebabPanelSum" },
+  ];
+
+  const closeAllKebabs = () => {
+    for (const k of KEBABS) {
+      const panel = els[k.panel];
+      const btn = els[k.btn];
+      if (panel && !panel.hidden) {
+        panel.hidden = true;
+        btn.setAttribute("aria-expanded", "false");
+      }
+    }
   };
-  els.kebabBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const open = els.kebabPanel.hidden;
-    els.kebabPanel.hidden = !open;
-    els.kebabBtn.setAttribute("aria-expanded", String(open));
-  });
-  document.addEventListener("click", (e) => {
-    if (els.kebabPanel.hidden) return;
-    if (els.kebabPanel.contains(e.target) || els.kebabBtn.contains(e.target)) return;
-    closeKebab();
-  });
-  for (const b of [els.soundBtn, els.helpBtnChrono]) {
-    b.addEventListener("click", closeKebab);
+
+  for (const k of KEBABS) {
+    const btn = els[k.btn];
+    const panel = els[k.panel];
+    if (!btn || !panel) continue;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = panel.hidden;
+      closeAllKebabs();
+      panel.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+    });
   }
+
+  document.addEventListener("click", (e) => {
+    const item = e.target.closest(".kebab-item[data-action]");
+    if (item) {
+      closeAllKebabs();
+      const action = item.dataset.action;
+      if (action === "sound") emit("soundToggle");
+      else if (action === "help") openHelp();
+      else if (action === "export") emit("openExport");
+      else if (action === "clear") emit("clearChoices");
+      return;
+    }
+    // Click fora de qualquer kebab aberto → fecha.
+    for (const k of KEBABS) {
+      const panel = els[k.panel];
+      if (!panel || panel.hidden) continue;
+      if (panel.contains(e.target) || els[k.btn].contains(e.target)) continue;
+      panel.hidden = true;
+      els[k.btn].setAttribute("aria-expanded", "false");
+    }
+  });
   // Esc fecha APENAS o menu — sem preventDefault o `cancel` do <dialog>
   // dispararia exitChrono e pediria confirmação de sair.
   document.addEventListener(
     "keydown",
     (e) => {
-      if (e.key === "Escape" && !els.kebabPanel.hidden) {
+      const anyOpen = KEBABS.some((k) => els[k.panel] && !els[k.panel].hidden);
+      if (e.key === "Escape" && anyOpen) {
         e.preventDefault();
         e.stopPropagation();
-        closeKebab();
+        closeAllKebabs();
       }
     },
     true
@@ -363,10 +490,7 @@ export function initUI() {
   els.discardBtn.addEventListener("click", () => emit("discard"));
   els.saveSessionBtn.addEventListener("click", () => emit("saveSession"));
 
-  // Ajuda.
-  for (const b of [els.helpBtn, els.helpBtnChrono, els.helpBtnSummary]) {
-    b.addEventListener("click", () => openHelp());
-  }
+  // Ajuda (botão dedicado no kebab do cronômetro; os demais usam data-action).
   els.helpCloseBtn.addEventListener("click", () => els.helpDialog.close());
 
   // Esc no modal do cronômetro: não fecha direto — pede confirmação de sair.
@@ -395,9 +519,25 @@ export function initUI() {
   els.updateBtn.addEventListener("click", () => emit("applyUpdate"));
   els.updateDismissBtn.addEventListener("click", () => hideUpdateBanner());
 
-  // Rodapé da config.
-  els.exportBtn.addEventListener("click", () => emit("exportHistory"));
-  els.clearHistoryBtn.addEventListener("click", () => emit("clearHistory"));
+  // Modal de exportação (.xlsx).
+  els.exportCloseBtn.addEventListener("click", () => els.exportDialog.close());
+  els.exportXlsxBtn.addEventListener("click", () => emit("exportXlsx"));
+  els.exportList.addEventListener("click", (e) => {
+    const del = e.target.closest(".export-del");
+    if (del) emit("deleteSession", del.dataset.del);
+  });
+
+  // Alinha os 2 cronômetros sempre que a layout do modal muda (resize,
+  // badge GameSir mais largo, tema com kebab 56px…). Transform não
+  // altera o box → o observer não realça em loop.
+  if (typeof ResizeObserver !== "undefined") {
+    const ro = new ResizeObserver(() => alignDisplays());
+    ro.observe(els["screen-chrono"]);
+    const stage0 = els.startBtn && els.startBtn.closest(".controls-center");
+    if (stage0) ro.observe(stage0);
+    if (els.masterDisplay) ro.observe(els.masterDisplay.closest(".display-master"));
+    if (els.gpStatus) ro.observe(els.gpStatus);
+  }
 }
 
 /* ---------------- Telas ---------------- */
@@ -411,6 +551,7 @@ export function showScreen(name) {
   if (name === "chrono") {
     if (!chrono.open) chrono.showModal();
     applyBtnPos();
+    alignDisplays();
     window.scrollTo(0, 0);
     // Toast no top layer do modal (fora do dialog ele fica atrás do backdrop).
     chrono.appendChild(els.toast);
@@ -778,18 +919,68 @@ export function setThemeChoice(theme) {
 }
 
 export function setSoundOn(on) {
-  // Item do kebab: ícone + rótulo de estado (nunca textContent no botão
-  // inteiro — apagaria "Alerta sonoro").
-  const ico = els.soundBtn.querySelector(".kebab-ico");
-  const stateEl = els.soundBtn.querySelector(".kebab-state");
-  if (ico) ico.textContent = on ? "🔔" : "🔕";
-  if (stateEl) stateEl.textContent = on ? "Ligado" : "Desligado";
-  els.soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
-  els.soundBtn.title = on ? "Alerta sonoro ligado" : "Alerta sonoro desligado";
+  // Todos os itens de som (kebabs das 3 telas): ícone + aria + title.
+  // Nunca textContent no botão inteiro — apagaria o aria-label.
+  for (const b of document.querySelectorAll('[data-action="sound"]')) {
+    const ico = b.querySelector(".kebab-ico");
+    if (ico) ico.textContent = on ? "🔔" : "🔕";
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.title = on ? "Alerta sonoro ligado" : "Alerta sonoro desligado";
+    b.setAttribute("aria-label", b.title);
+  }
 }
 
 export function setSavedCount(n) {
   els.savedCount.textContent = n === 1 ? "1 sessão salva" : `${n} sessões salvas`;
+}
+
+/* ---------------- Modal de exportação (.xlsx) ---------------- */
+
+export function renderExport(sessions) {
+  const list = els.exportList;
+  list.replaceChildren();
+  const n = sessions.length;
+  setSavedCount(n);
+  els.exportEmpty.hidden = n > 0;
+  els.exportList.hidden = n === 0;
+  els.exportXlsxBtn.disabled = n === 0;
+
+  for (const s of sessions) {
+    const li = document.createElement("li");
+    li.className = "export-row";
+    li.dataset.id = s.id;
+
+    const text = document.createElement("div");
+    text.className = "export-row-text";
+    const name = document.createElement("span");
+    name.className = "export-row-name";
+    name.textContent = s.nome || "Treino";
+    const meta = document.createElement("span");
+    meta.className = "export-row-meta";
+    const d = s.savedAt ? new Date(s.savedAt) : null;
+    const when =
+      d && !Number.isNaN(d.getTime())
+        ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+        : "";
+    const regs = Array.isArray(s.registros) ? s.registros.length : 0;
+    meta.textContent = `${when ? `${when} · ` : ""}${regs} registro(s)`;
+    text.append(name, meta);
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "export-del";
+    del.dataset.del = s.id;
+    del.setAttribute("aria-label", `Excluir ${s.nome || "sessão"}`);
+    del.title = "Excluir sessão";
+    del.textContent = "✕";
+
+    li.append(text, del);
+    list.appendChild(li);
+  }
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
 }
 
 /* ---------------- Alerta sonoro (opcional, sem rede) ---------------- */

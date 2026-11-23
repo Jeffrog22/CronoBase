@@ -1,12 +1,12 @@
 {
   "name": "cronobase",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "private": true,
   "description": "Cronômetro de treino PWA (Modo 2) da Fizapp — GameSir X5 Lite, três temas.",
   "type": "module",
   "scripts": {
     "serve": "python -m http.server 8080",
-    "check": "node --check js/state.js && node --check js/clock.js && node --check js/modo2.js && node --check js/store.js && node --check js/themes.js && node --check js/wake.js && node --check js/gamepad.js && node --check js/ui.js && node --check js/main.js && node --check sw.js && node --check scripts/gen-icons.js",
+    "check": "node --check js/state.js && node --check js/clock.js && node --check js/modo2.js && node --check js/store.js && node --check js/xlsx.js && node --check js/themes.js && node --check js/wake.js && node --check js/gamepad.js && node --check js/ui.js && node --check js/main.js && node --check sw.js && node --check scripts/gen-icons.js",
     "test:logic": "node tests/logic.mjs",
     "test:e2e": "node tests/e2e-runner.mjs",
     "test": "npm run test:logic && npm run test:e2e"

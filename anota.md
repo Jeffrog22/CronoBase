@@ -1,7 +1,19 @@
-verificar att, top bar
 implementar modo onda
 implementar timer regressivo
-verificar exportação pra .xlsx
-cronometro topo da tela - nova tela ou modal colado ao topo
+
+
+
 carregar .csv
-versionamento na tela, tag
+
+
+
+
+
+k
+
+
+
+ebab menu icones de som e controle
+ajuste e centralização dos cronometros
+zerar 3z hold dispara msg do navegador de copiar/recortar, seleção
+verificar exportação pra .xlsx

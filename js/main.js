@@ -7,8 +7,9 @@ import {
   selectAtleta, tickModo2, reorderRaias,
 } from "./modo2.js";
 import {
-  loadSessions, commitSession, clearSessions, loadAtletas, saveAtletas,
-  loadConfig, saveConfig, loadSound, saveSound, downloadJSON,
+  loadSessions, commitSession, loadAtletas, saveAtletas,
+  loadConfig, saveConfig, loadSound, saveSound,
+  deleteSession as storeDeleteSession, downloadXlsx,
 } from "./store.js";
 import { applyTheme, getTheme } from "./themes.js";
 import { requestWake, releaseWake, haptic, setActiveCheck } from "./wake.js";
@@ -294,29 +295,65 @@ async function discardSession(withConfirm = true) {
   ui.toast("Sessão descartada.");
 }
 
-/* ---------------- Histórico ---------------- */
+/* ---------------- Exportação / limpeza de escolhas ---------------- */
 
-function exportHistory() {
-  const data = loadSessions();
-  if (data.sessions.length === 0) {
-    ui.toast("Nenhuma sessão salva para exportar.");
-    return;
-  }
-  downloadJSON("cronobase-sessoes.json", data);
-  ui.toast("Exportação iniciada.", "success");
+function openExport() {
+  const { sessions } = loadSessions();
+  ui.renderExport(sessions);
+  if (!ui.els.exportDialog.open) ui.els.exportDialog.showModal();
 }
 
-async function clearHistory() {
+async function deleteSession(id) {
+  const { sessions } = loadSessions();
+  const target = sessions.find((s) => s.id === id);
+  if (!target) return;
   const ok = await ui.confirmAction({
-    title: "Limpar histórico?",
-    message: "Todas as sessões salvas neste aparelho serão removidas. Exporte antes se quiser guardar.",
-    okLabel: "Limpar",
+    title: "Excluir sessão?",
+    message: `"${target.nome || "Treino"}" e todos os seus registros serão removidos deste aparelho. Essa ação não pode ser desfeita.`,
+    okLabel: "Excluir",
     danger: true,
   });
   if (!ok) return;
-  clearSessions();
-  ui.renderConfig(state, 0);
-  ui.toast("Histórico limpo.");
+  try {
+    storeDeleteSession(id);
+  } catch (err) {
+    ui.toast("Erro ao excluir a sessão.", "error");
+    console.warn("CronoBase: falha ao excluir sessão.", err);
+    return;
+  }
+  const after = loadSessions();
+  ui.renderExport(after.sessions);
+  ui.renderConfig(state, after.sessions.length);
+  ui.toast("Sessão excluída.", "success");
+}
+
+function exportXlsx() {
+  const { sessions } = loadSessions();
+  if (sessions.length === 0) {
+    ui.toast("Nenhuma sessão salva para exportar.");
+    return;
+  }
+  try {
+    downloadXlsx("cronobase-sessoes.xlsx", sessions);
+    ui.toast("Exportação iniciada.", "success");
+  } catch (err) {
+    ui.toast("Erro ao gerar o arquivo .xlsx.", "error");
+    console.warn("CronoBase: falha ao exportar xlsx.", err);
+  }
+}
+
+function clearChoices() {
+  if (state.screen !== "config") {
+    ui.toast("Disponível na tela de configuração.");
+    return;
+  }
+  state.config = { ...DEFAULT_CONFIG };
+  state.selectedAtletas = [];
+  state.step = 1;
+  ui.els.novoAtleta.value = "";
+  saveConfig(state.config);
+  ui.renderConfig(state, loadSessions().sessions.length);
+  ui.toast("Escolhas limpas.", "success");
 }
 
 /* ---------------- Preferências ---------------- */
@@ -338,6 +375,7 @@ function toggleSound() {
 function handleGamepadAction(action) {
   const dialogOpen = ui.els.confirmDialog.open;
   const helpOpen = ui.els.helpDialog.open;
+  const exportOpen = ui.els.exportDialog.open;
 
   if (dialogOpen) {
     if (action === "confirm" || action === "primary") ui.els.confirmOkBtn.click();
@@ -347,6 +385,12 @@ function handleGamepadAction(action) {
   if (helpOpen) {
     if (action === "cancel" || action === "confirm" || action === "primary" || action === "ajuda") {
       ui.els.helpDialog.close();
+    }
+    return;
+  }
+  if (exportOpen) {
+    if (action === "cancel" || action === "confirm" || action === "primary" || action === "ajuda") {
+      ui.els.exportDialog.close();
     }
     return;
   }
@@ -519,8 +563,10 @@ function init() {
     }
   });
   ui.on("soundToggle", toggleSound);
-  ui.on("exportHistory", exportHistory);
-  ui.on("clearHistory", clearHistory);
+  ui.on("openExport", openExport);
+  ui.on("deleteSession", deleteSession);
+  ui.on("exportXlsx", exportXlsx);
+  ui.on("clearChoices", clearChoices);
   ui.on("applyUpdate", applyUpdate);
 
   // Inputs de configuração.
@@ -555,6 +601,7 @@ function init() {
 function currentDialog() {
   if (ui.els.confirmDialog.open) return "confirm";
   if (ui.els.helpDialog.open) return "help";
+  if (ui.els.exportDialog.open) return "export";
   return null;
 }
 

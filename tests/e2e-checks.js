@@ -28,6 +28,25 @@ function sleep(ms) {
 async function run() {
   const $ = (id) => document.getElementById(id);
   try {
+    // 0. Config: viewport travada (sem scroll de página) + kebab de 4 itens
+    check(
+      document.documentElement.scrollHeight <= window.innerHeight + 1,
+      `config sem scroll de página [body=${document.documentElement.scrollHeight} vp=${window.innerHeight}]`
+    );
+    const cfgMain = document.querySelector(".config-main");
+    check(
+      getComputedStyle($("screen-config")).overflow === "hidden" && getComputedStyle(cfgMain).overflowY === "auto",
+      "só .config-main rola (100dvh)"
+    );
+    $("kebabBtnCfg").click();
+    check(!$("kebabPanelCfg").hidden, "kebab da config abre");
+    check(
+      document.querySelectorAll("#kebabPanelCfg .kebab-item").length === 4,
+      "kebab da config lista 4 itens"
+    );
+    $("kebabBtnCfg").click();
+    check($("kebabPanelCfg").hidden, "kebab da config fecha no toggle");
+
     // 1. Config: adicionar atleta e iniciar treino
     $("novoAtleta").value = "Ana";
     $("addAtletaBtn").click();
@@ -56,6 +75,16 @@ async function run() {
       sbRect.right <= contRect.left + 1 && contRect.right <= stRect.left + 1,
       `sessão contínua entre Iniciar e Parar [start.right=${sbRect.right.toFixed(0)} cont=${contRect.left.toFixed(0)}→${contRect.right.toFixed(0)} stop.left=${stRect.left.toFixed(0)}]`
     );
+    // Alinhamento dos dois cronômetros (v0.9.0)
+    const contC = document.querySelector(".display-continuous").getBoundingClientRect();
+    const mastC = $("masterDisplay").getBoundingClientRect();
+    const deltaM = Math.abs(contC.left + contC.width / 2 - (mastC.left + mastC.width / 2));
+    check(deltaM <= 2, `cronômetros alinhados [Δ=${deltaM.toFixed(1)}px]`);
+    // Long-press do Parar não dispara seleção de texto (v0.9.0)
+    check(
+      getComputedStyle($("stopBtn")).userSelect === "none",
+      `Parar sem seleção de texto [userSelect=${getComputedStyle($("stopBtn")).userSelect}]`
+    );
     if (gridOn) {
       const cRect = document.querySelector(".chrono-controls").getBoundingClientRect();
       const hRect = document.querySelector(".chrono-header").getBoundingClientRect();
@@ -74,9 +103,11 @@ async function run() {
     check($("startBtn").textContent === "Iniciar", "botão mostra Iniciar");
     check($("gpStatus").textContent.includes("desect") || $("gpStatus").textContent.includes("desconect"), "status GameSir visível");
 
-    // 1.5 Kebab: menu com alerta sonoro + ajuda
+    // 1.5 Kebab do cronômetro: 4 itens (som, ajuda, exportar, limpar)
     $("kebabBtn").click();
     check(!$("kebabPanel").hidden, "kebab abre o menu");
+    const chronoItems = document.querySelectorAll("#kebabPanel .kebab-item");
+    check(chronoItems.length === 4, `kebab cronômetro lista 4 itens [n=${chronoItems.length}]`);
     check(
       $("soundBtn").offsetParent !== null && $("helpBtnChrono").offsetParent !== null,
       "menu lista alerta sonoro + ajuda"
@@ -95,6 +126,17 @@ async function run() {
     $("kebabBtn").click(); // abre de novo p/ testar o click fora
     $("chronoName").click();
     check($("kebabPanel").hidden, "click fora fecha o kebab");
+    // 🧹 fora da config → aviso, sem limpar seleção
+    $("kebabBtn").click();
+    document.querySelector('#kebabPanel [data-action="clear"]').click();
+    check(
+      $("toast").textContent.includes("Disponível na tela de configuração"),
+      "clear fora da config mostra aviso"
+    );
+    check(
+      window.cronobase.state.selectedAtletas.length === 2,
+      "clear fora da config NÃO altera seleção"
+    );
 
     // 2. Tema troca sem zerar estado
     $("themeSelectChrono").value = "night";
@@ -171,6 +213,14 @@ async function run() {
     $("summaryBtn").click();
     check(!$("screen-summary").hidden, "resumo abriu");
     check(document.querySelectorAll("#summaryList .summary-item").length >= 1, "resumo lista registros");
+    $("kebabBtnSum").click();
+    check(!$("kebabPanelSum").hidden, "kebab do resumo abre");
+    check(
+      document.querySelectorAll("#kebabPanelSum .kebab-item").length === 4,
+      "kebab do resumo lista 4 itens"
+    );
+    $("kebabBtnSum").click();
+    check($("kebabPanelSum").hidden, "kebab do resumo fecha no toggle");
     let clickSeen = false;
     $("saveSessionBtn").addEventListener("click", () => { clickSeen = true; }, { once: true });
     window.__phase = "save-click";
@@ -220,6 +270,60 @@ async function run() {
     check(
       cl4.scrollHeight <= cl4.clientHeight + 1,
       `4 cards cabem sem scroll [scroll=${cl4.scrollHeight} client=${cl4.clientHeight}]`
+    );
+
+    // 8. Exportação: modal, lista, exclusão por linha (v0.9.0)
+    $("screen-chrono").dispatchEvent(new Event("cancel", { cancelable: true }));
+    await sleep(50);
+    check(!$("screen-chrono").open && !$("screen-config").hidden, "volta para config (exitChrono)");
+    $("kebabBtnCfg").click();
+    document.querySelector('#kebabPanelCfg [data-action="export"]').click();
+    await sleep(30);
+    check($("exportDialog").open, "modal de exportação abre");
+    check($("kebabPanelCfg").hidden, "kebab fecha ao abrir exportação");
+    const expRows = document.querySelectorAll("#exportList .export-row");
+    check(expRows.length === 1, `export lista 1 sessão salva [rows=${expRows.length}]`);
+    check($("exportEmpty").hidden, "aviso vazio escondido quando há dados");
+    check(!$("exportXlsxBtn").disabled, "botão .xlsx habilitado com dados");
+    check($("savedCount").textContent.includes("1 sessão salva"), "savedCount no cabeçalho do modal");
+    document.querySelector("#exportList .export-del").click();
+    await sleep(30);
+    check($("confirmDialog").open, "excluir sessão pede confirmação");
+    window.__phase = "del-ok";
+    $("confirmOkBtn").click();
+    await sleep(50);
+    check(
+      document.querySelectorAll("#exportList .export-row").length === 0,
+      "sessão removida da lista"
+    );
+    check($("savedCount").textContent.includes("0 sessões"), "savedCount zerado");
+    check($("exportXlsxBtn").disabled, "botão .xlsx desabilitado sem dados");
+    const delRaw = localStorage.getItem("cronobase.sessions.v1");
+    check(
+      Boolean(delRaw) && JSON.parse(delRaw).sessions.length === 0,
+      "localStorage sem sessões após exclusão"
+    );
+    $("exportCloseBtn").click();
+    check(!$("exportDialog").open, "modal de exportação fecha");
+
+    // 9. Limpar escolhas (só na tela de config)
+    $("cfgNome").value = "Teste limpar";
+    $("cfgNome").dispatchEvent(new Event("change"));
+    check(window.cronobase.state.config.nome === "Teste limpar", "nome preenchido antes do clear");
+    $("kebabBtnCfg").click();
+    document.querySelector('#kebabPanelCfg [data-action="clear"]').click();
+    await sleep(30);
+    check(window.cronobase.state.config.nome === "", "clearChoices zera campos da config");
+    check(window.cronobase.state.selectedAtletas.length === 0, "clearChoices desmarca atletas");
+    check(window.cronobase.state.step === 1, "clearChoices volta ao passo 1");
+    check($("cfgNome").value === "", "input nome limpo");
+    check(
+      document.querySelectorAll("#atletasList .atleta-item").length === 4,
+      "registro de atletas intacto após clear"
+    );
+    check(
+      document.querySelectorAll("#atletasList .atleta-item.selected").length === 0,
+      "nenhum atleta marcado após clear"
     );
   } catch (err) {
     results.push(`FAIL exceção: ${err && err.message}`);

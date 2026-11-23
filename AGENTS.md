@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Fix do Parar sumindo no modo livre (v0.8.1) -->
+﻿<!-- última-sessão: 22/11/2026 — Kebab 4 ícones, export .xlsx, alinhamento, config 100dvh (v0.9.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.8.1
+- **Versão atual:** v0.9.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -49,6 +49,7 @@ Regras:
 |---------|--------|
 | `index.html` | App de página única — 3 telas (config, cronômetro, resumo) + diálogos |
 | `js/motor` → `js/modo2.js` | Regras do Modo 2 (lógica pura, testável em Node) |
+| `js/xlsx.js` | Gerador .xlsx puro (crc32 + ZIP store + OOXML) — v0.9.0 |
 | `js/state.js` | Estado singleton da sessão, `DEFAULT_CONFIG`, `uid` |
 | `js/ui.js` | Camada de renderização (única que toca o DOM de dados) + `showScreen` (abre/fecha o `<dialog>` do cronômetro) |
 | `js/main.js` | Bootstrap, handlers de eventos, PWA |
@@ -81,6 +82,11 @@ Regras:
 - **Linha de controles no topo do modal**: `.chrono-controls` é o 1º filho de `#screen-chrono` (`position:relative` — ancora o `#kebabPanel`), com 3 zonas: `#summaryBtn` (cinza) à esquerda · `.controls-center` = **palco** `Iniciar · Sessão contínua · Parar` (`flex: 1 1 min-content`, `gap: 0.5rem`; basis min-content faz o trio parear com o Resumo na linha 1 e só o grupo da direita quebrar — basis 0 estourava a pílula em ~490px, basis auto deixava o Resumo sozinho em ~430px; ≤400px retrato comprime fontes/padding p/ manter 2 linhas) · `.controls-right` = pílula GameSir + kebab. **O gap de 5cm da v0.2.1 foi REMOVIDO em v0.8.0** (pedido do usuário — a Sessão contínua passou a ocupar o meio); `margin-right` do `#startBtn` não existe mais. Safe-area-inset-top está no `.chrono-controls`. O palco é o que o drag&drop de posição livre usa (`.controls-center.free` com `align-self: stretch`).
 - **Zerar é long-press do Parar (v0.3.0)** — não existe `#resetBtn`. Segurar `stopBtn` ≥3s (`STOP_HOLD_MS` em ui.js) emite `reset` (confirmação); soltar antes = tap normal (`stopLongFired` engole o click subsequente). Gamepad RT espelha o padrão do Home (`GP_ZERAR_LONG_MS`): tap = parar, hold ≥3s = zerar. Parar pausado fica habilitado quando há dados (`hasData`); toque pausado → toast "Já pausado.". **Não remover `expectedCloses` nem o swallow do longFired.**
 - **Grid de paisagem (v0.3.0, ordem v0.3.1, áreas v0.7.0)**: `@media (orientation: landscape) and (max-height: 560px)` usa áreas `"controls"` → `"header"` → `"list list"` (state-line oculta e rodapé removido desde v0.7.0 — a altura toda vai para as raias, **4 cards sem scroll**) — **nunca colocar `"header"` como 1ª linha** (v0.3.0 empurrava os botões para o meio da tela). `.chrono-controls` é **rente ao topo**: `padding-top: env(safe-area-inset-top)` (sem respiro de 0.55rem; o safe-area só afasta de notch/status bar em retrato PWA). Raias em modo compacto (1 linha, `.raia-temps` escondido). `.raia-clock` tem cap `min(var(--clock-size), 1.7rem)` (1.05rem no paisagem) + `overflow-x: hidden` na lista (sem isso o `00:00:00` criava scrollbar horizontal em tela larga).
+- **Kebab em 3 telas com `data-action` (v0.9.0)**: wrappers `.kebab` (position:relative) em config (`kebabBtnCfg`), resumo (`kebabBtnSum`) e cronômetro (`kebabBtn`); painel horizontal de 4 itens só-ícone 48px (`sound|help|export|clear`). Dispatch por delegação em `document` (fecha todos os kebabs, emite `soundToggle`/`openHelp`/`openExport`/`clearChoices`); Esc em capture fecha só o menu (nunca chega no `cancel` do `<dialog>`). `setSoundOn` itera `[data-action="sound"]`. **Não re-adicionar `#helpBtn`/`#helpBtnSummary`/`#exportBtn`/`#clearHistoryBtn`** — rodapé da config foi removido.
+- **Alinhamento dos cronômetros (v0.9.0)**: `alignDisplays()` em `js/ui.js` escolhe `s` do palco em `[max(-roomL, tMin+δ), min(roomR, tMax+δ)]` e `t = s −δ` — clamp só do mestre *depois* de escolher `s = δ/2` quebrava a centrização (Δ=21.6px no E2E). Mede com transforms zerados; gatilhos: fim de `showScreen("chrono")` + `ResizeObserver` (transform não dispara RO → sem loop).
+- **Exportação .xlsx (v0.9.0)**: `js/xlsx.js` é ZIP **store** (método 0) + OOXML mínimo, sem deps; `buildXlsx(sessions)` → `Uint8Array`; `store.downloadXlsx` faz Blob+`<a download>`. Modal `#exportDialog` lista sessões; ✕ por linha → `confirmAction` → `store.deleteSession` (histórico local); `savedCount` só existe no cabeçalho desse modal. JSON **não** é mais opção de export.
+- **`clearChoices` só na config (v0.9.0)**: fora de `state.screen === "config"` emite toast e não altera nada; limpa `config → DEFAULT_CONFIG`, `selectedAtletas = []`, `step = 1`, input `novoAtleta` — **não** toca em `state.atletas` (registro) nem no histórico.
+- **Config 100dvh (v0.9.0)**: `#screen-config { height:100dvh; overflow:hidden }` e só `.config-main` rola (`min-height:0; overflow-y:auto`); o rodapé sticky (6rem) foi removido. E2E valida `documentElement.scrollHeight ≤ innerHeight`.
 
 ---
 
@@ -546,4 +552,74 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (11 módulos)
 - `npm test`: 46/46 lógica + **53/53 E2E** — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 22/11/2026 — Kebab 4 ícones, export .xlsx, alinhamento, config 100dvh (v0.9.0)
+
+### O que foi feito
+- **Kebab em 3 telas** (config/resumo/cronômetro) com 4 ícones
+  `data-action="sound|help|export|clear"`: wrapper `.kebab` ancora painel
+  horizontal só-ícone 48px; controlador genérico em `js/ui.js` (toggle,
+  click-fora, Esc capture fecha só o menu); dispatch por delegação em
+  `document`; `setSoundOn` itera `[data-action="sound"]` (🔔/🔕 + aria);
+  remove `#helpBtn`, `#helpBtnSummary` e bindings antigos
+- **Rodapé da config extraído**: `.config-footer` (Exportar/Limpar
+  histórico) apagado do HTML/CSS; `savedCount` migrou para o cabeçalho do
+  novo modal de exportação
+- **`js/xlsx.js`** (novo, zero deps): `crc32` + `zipStore` (ZIP método 0)
+  + OOXML mínimo (`buildXlsx` → Uint8Array); colunas Sessão…Tempos com
+  `inlineStr` e escape XML; `store.deleteSession(id)` +
+  `store.downloadXlsx(filename, sessions)`
+- **Modal `#exportDialog`**: lista de sessões (nome, data/hora, registros),
+  `savedCount`, botão Baixar .xlsx, **✕ por linha** → `confirmAction` →
+  exclusão no `localStorage`; handlers novos em `main.js`:
+  `openExport`, `deleteSession`, `exportXlsx`, `clearChoices` (guard
+  `screen==="config"`); `handleGamepadAction`/`currentDialog` tratam
+  `exportDialog`; JSON substituído pelo .xlsx
+- **Alinhamento dos 2 cronômetros**: `alignDisplays()` em `js/ui.js`
+  (midpoint com clamp conjunto `s ∈ [max(-roomL,tMin+δ), min(roomR,tMax+δ)]`,
+  `t = s − δ`); gatilhos `showScreen("chrono")` + `ResizeObserver`;
+  bug do primeiro draft (clamp do mestre depois de `s=δ/2` → Δ=21.6px)
+  corrigido escolhendo `s` já respeitando os dois clamps (Δ=0.0)
+- **Config 100dvh**: `#screen-config` overflow hidden, `.config-main`
+  única área rolável, compactação de margens/paddings
+- **`user-select:none`** no modal do cronômetro + `touch-callout:none`
+  no Parar (long-press não dispara seleção); inputs com regra autor
+- **F**: `sw.js` → `cronobase-v4` (+ `js/xlsx.js` no CORE),
+  `APP_VERSION`/`package.json` → 0.9.0, `check` inclui `js/xlsx.js`;
+  `tests/logic.mjs` +11 checks xlsx; `tests/e2e-checks.js` +33 checks
+  (config scroll, kebabs 4 itens ×3 telas, alinhamento ≤2px, userSelect,
+  clearChoices com guarda, fluxo export/exclusão) → **86 PASS**;
+  CHANGELOG v0.9.0 + este registro
+
+### Decisões
+- 4 ambiguidades respondidas pelo usuário: "sessões 1/2/3" = painéis da
+  config; 🧹 limpa escolhas da config (não o histórico); export = .xlsx
+  puro JS; ✕ por linha apaga a sessão salva (com confirmação)
+- `savedCount` só no cabeçalho do modal de export (não mais no rodapé)
+- 🧹 sem confirmação mas com guard de tela + toast
+- Alinhamento move os dois cronômetros (midpoint), não só o mestre
+- JSON removido da exportação (substituído por .xlsx)
+- Diagnóstico do Δ=21.6 via script headless temporário (fora do repo)
+
+### Arquivos
+- `index.html`
+- `styles/app.css`
+- `js/xlsx.js` (novo)
+- `js/store.js`
+- `js/ui.js`
+- `js/main.js`
+- `js/state.js`
+- `sw.js`
+- `package.json`
+- `tests/logic.mjs`
+- `tests/e2e-checks.js`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (12 módulos, inclui `js/xlsx.js`)
+- `npm test`: **56/56 lógica + 86/86 E2E** — verde
 - Não há backend (app 100% estática)

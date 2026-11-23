@@ -32,7 +32,25 @@
             <span class="theme-field-label">Tema</span>
             <select id="themeSelect" class="select" aria-label="Selecionar tema"></select>
           </label>
-          <button id="helpBtn" class="btn btn-ghost btn-square" aria-label="Abrir ajuda" title="Ajuda">?</button>
+          <div class="kebab">
+            <button id="kebabBtnCfg" class="kebab-btn" aria-label="Mais opções" aria-expanded="false" aria-controls="kebabPanelCfg">
+              <span class="kebab-menu" aria-hidden="true"></span>
+            </button>
+            <div id="kebabPanelCfg" class="kebab-panel" hidden>
+              <button class="kebab-item" data-action="sound" aria-pressed="true" aria-label="Alerta sonoro" title="Alerta sonoro">
+                <span class="kebab-ico" aria-hidden="true">🔔</span>
+              </button>
+              <button class="kebab-item" data-action="help" aria-label="Ajuda" title="Ajuda">
+                <span class="kebab-ico" aria-hidden="true">❓</span>
+              </button>
+              <button class="kebab-item" data-action="export" aria-label="Exportar .xlsx" title="Exportar .xlsx">
+                <span class="kebab-ico" aria-hidden="true">📊</span>
+              </button>
+              <button class="kebab-item" data-action="clear" aria-label="Limpar escolhas" title="Limpar escolhas">
+                <span class="kebab-ico" aria-hidden="true">🧹</span>
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -114,13 +132,6 @@
         </nav>
       </main>
 
-      <footer class="config-footer">
-        <span id="savedCount" class="muted">0 sessões salvas</span>
-        <span class="footer-actions">
-          <button id="exportBtn" class="btn btn-ghost btn-sm">Exportar</button>
-          <button id="clearHistoryBtn" class="btn btn-ghost btn-sm">Limpar histórico</button>
-        </span>
-      </footer>
     </section>
 
     <!-- ======================= CRONÔMETRO ======================= -->
@@ -137,16 +148,24 @@
         </div>
         <div class="controls-right">
           <span id="gpStatus" class="gp-badge gp-off" title="Status do controle GameSir">GameSir: —</span>
-          <button id="kebabBtn" class="kebab-btn" aria-label="Mais opções" aria-expanded="false" aria-controls="kebabPanel">
-            <span class="kebab-menu" aria-hidden="true"></span>
-          </button>
-          <div id="kebabPanel" class="kebab-panel" hidden>
-            <button id="soundBtn" class="kebab-item" aria-pressed="true">
-              <span class="kebab-ico" aria-hidden="true">🔔</span>
-              <span>Alerta sonoro</span>
-              <span class="kebab-state">Ligado</span>
+          <div class="kebab">
+            <button id="kebabBtn" class="kebab-btn" aria-label="Mais opções" aria-expanded="false" aria-controls="kebabPanel">
+              <span class="kebab-menu" aria-hidden="true"></span>
             </button>
-            <button id="helpBtnChrono" class="kebab-item">Ajuda / controles</button>
+            <div id="kebabPanel" class="kebab-panel" hidden>
+              <button id="soundBtn" class="kebab-item" data-action="sound" aria-pressed="true" aria-label="Alerta sonoro" title="Alerta sonoro">
+                <span class="kebab-ico" aria-hidden="true">🔔</span>
+              </button>
+              <button id="helpBtnChrono" class="kebab-item" data-action="help" aria-label="Ajuda" title="Ajuda">
+                <span class="kebab-ico" aria-hidden="true">❓</span>
+              </button>
+              <button class="kebab-item" data-action="export" aria-label="Exportar .xlsx" title="Exportar .xlsx">
+                <span class="kebab-ico" aria-hidden="true">📊</span>
+              </button>
+              <button class="kebab-item" data-action="clear" aria-label="Limpar escolhas" title="Limpar escolhas">
+                <span class="kebab-ico" aria-hidden="true">🧹</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -177,7 +196,25 @@
         </div>
         <div class="topbar-actions">
           <select id="themeSelectSummary" class="select select-sm" aria-label="Selecionar tema"></select>
-          <button id="helpBtnSummary" class="btn btn-ghost btn-square" aria-label="Abrir ajuda">?</button>
+          <div class="kebab">
+            <button id="kebabBtnSum" class="kebab-btn" aria-label="Mais opções" aria-expanded="false" aria-controls="kebabPanelSum">
+              <span class="kebab-menu" aria-hidden="true"></span>
+            </button>
+            <div id="kebabPanelSum" class="kebab-panel" hidden>
+              <button class="kebab-item" data-action="sound" aria-pressed="true" aria-label="Alerta sonoro" title="Alerta sonoro">
+                <span class="kebab-ico" aria-hidden="true">🔔</span>
+              </button>
+              <button class="kebab-item" data-action="help" aria-label="Ajuda" title="Ajuda">
+                <span class="kebab-ico" aria-hidden="true">❓</span>
+              </button>
+              <button class="kebab-item" data-action="export" aria-label="Exportar .xlsx" title="Exportar .xlsx">
+                <span class="kebab-ico" aria-hidden="true">📊</span>
+              </button>
+              <button class="kebab-item" data-action="clear" aria-label="Limpar escolhas" title="Limpar escolhas">
+                <span class="kebab-ico" aria-hidden="true">🧹</span>
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -229,6 +266,23 @@
           Dica: <code>window.gamepadDebug = true</code> no console do navegador ativa o log
           de índices de botão para diagnóstico de mapeamentos não padrão.
         </p>
+      </div>
+    </dialog>
+
+    <dialog id="exportDialog" class="dialog" aria-labelledby="exportTitle">
+      <div class="dialog-header">
+        <div class="export-header-text">
+          <h2 id="exportTitle" class="dialog-title">Exportar sessões</h2>
+          <span id="savedCount" class="muted">0 sessões salvas</span>
+        </div>
+        <button id="exportCloseBtn" class="btn btn-ghost btn-square" aria-label="Fechar exportação">✕</button>
+      </div>
+      <div class="dialog-body">
+        <ul id="exportList" class="export-list" hidden></ul>
+        <p id="exportEmpty" class="hint">Nenhuma sessão salva neste aparelho.</p>
+      </div>
+      <div class="dialog-actions">
+        <button id="exportXlsxBtn" class="btn btn-primary">Baixar .xlsx</button>
       </div>
     </dialog>
 

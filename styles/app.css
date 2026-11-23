@@ -43,7 +43,7 @@ input {
 .hint {
   font-size: 0.85rem;
   color: var(--muted);
-  margin: 0.75rem 0 0;
+  margin: 0.5rem 0 0;
 }
 
 .screen {
@@ -225,7 +225,7 @@ input {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.6rem;
 }
 
 .field-label {
@@ -256,22 +256,33 @@ input {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted);
-  margin: 1.1rem 0 0.5rem;
+  margin: 0.8rem 0 0.4rem;
 }
 
 /* ---------------- Config ---------------- */
+/* Altura fixa = viewport (estilo modal do cronômetro, v0.9.0): a página
+   inteira não rola; só .config-main rola se o painel não couber. */
+#screen-config {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
 .config-main {
   flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   width: min(640px, 100%);
   margin: 0 auto;
-  padding: 1rem 1rem 6rem;
+  padding: 0.75rem 1rem 1rem;
 }
 
 .steps {
   display: flex;
   gap: 0.5rem;
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0 0 0.6rem;
   padding: 0;
 }
 
@@ -318,11 +329,11 @@ input {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 1.25rem;
+  padding: 1rem;
 }
 
 .card-title {
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
   font-size: 1.15rem;
   color: var(--text-strong);
 }
@@ -338,27 +349,8 @@ input {
 .config-nav {
   display: flex;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   justify-content: flex-end;
-}
-
-.config-footer {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  font-size: 0.85rem;
-}
-
-.footer-actions {
-  display: flex;
-  gap: 0.25rem;
 }
 
 /* Lista de atletas (config) */
@@ -421,7 +413,12 @@ input {
 
 /* ---------------- Cronômetro ---------------- */
 /* Modal <dialog> de borda total, colado no topo da viewport. */
+/* user-select: none impede que o long-press ≥3s do Parar dispare a
+   seleção/copiar nativa do navegador (v0.9.0). Nada aqui é texto
+   selecionável — inputs continuam selecionáveis (regra autor abaixo). */
 #screen-chrono {
+  user-select: none;
+  -webkit-user-select: none;
   margin: 0 auto;
   width: 100%;
   max-width: 100%;
@@ -441,6 +438,27 @@ input {
 
 #screen-chrono::backdrop {
   background: rgb(0 0 0 / 0.45);
+}
+
+/* Long-press ≥3s: sem callout nativo (iOS) e sem seleção de texto em
+   botões/listas — o hold do Parar não pode abrir copiar/recortar. */
+#stopBtn {
+  -webkit-touch-callout: none;
+}
+
+.btn,
+.kebab-item,
+.raia,
+.kebab-btn {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input,
+textarea,
+select {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .chrono-header {
@@ -718,7 +736,14 @@ input {
   margin-left: auto;
 }
 
-/* ---------------- Kebab menu (som + ajuda) ---------------- */
+/* ---------------- Kebab menu (som, ajuda, exportar, limpar) ------------
+   Wrapper .kebab ancora o painel; em todas as telas (config, resumo,
+   cronômetro) o painel é uma faixa horizontal de 48px só-ícone. */
+.kebab {
+  position: relative;
+  display: inline-flex;
+}
+
 .kebab-btn {
   width: 48px;
   height: 48px;
@@ -760,12 +785,12 @@ input {
 .kebab-panel {
   position: absolute;
   top: 100%;
-  right: 0.9rem;
+  right: 0;
+  margin-top: 4px;
   z-index: 40;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 2px;
-  min-width: 13.5rem;
   padding: 0.35rem;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -774,19 +799,16 @@ input {
 }
 
 .kebab-item {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  width: 100%;
-  min-height: var(--touch);
-  padding: 0.55rem 0.7rem;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--text);
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-align: left;
   cursor: pointer;
 }
 
@@ -794,11 +816,14 @@ input {
   background: var(--surface-2);
 }
 
-.kebab-state {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
+.kebab-ico {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.kebab-item[aria-pressed="false"] .kebab-ico {
+  filter: grayscale(1);
+  opacity: 0.55;
 }
 
 /* Botões do modelo: mais altos, raio maior, destaque visual. */
@@ -1150,6 +1175,78 @@ input {
   justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 1rem;
+}
+
+/* Modal de exportação (.xlsx) — v0.9.0 */
+.export-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.export-header-text .muted {
+  font-size: 0.85rem;
+}
+
+.export-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.export-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.export-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.export-row-name {
+  font-weight: 700;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.export-row-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.export-del {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--danger);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.export-del:hover {
+  background: var(--blue-soft);
+  border-color: var(--danger);
 }
 
 .confirm-message {

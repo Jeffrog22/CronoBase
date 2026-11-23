@@ -6,6 +6,8 @@
 //   - Cancelar/Descartar → confirmação; descarta SEM gravar nada.
 //   - Nunca grava silenciosamente ao cancelar.
 
+import { buildXlsx } from "./xlsx.js";
+
 const KEY = {
   sessions: "cronobase.sessions.v1",
   atletas: "cronobase.atletas.v1",
@@ -60,12 +62,35 @@ export function clearSessions() {
   localStorage.removeItem(KEY.sessions);
 }
 
+/** Remove uma sessão pelo id (export modal ✕). Retorna o estado após. */
+export function deleteSession(id) {
+  const data = loadSessions();
+  const sessions = data.sessions.filter((s) => s.id !== id);
+  if (sessions.length === data.sessions.length) return data;
+  writeJSON(KEY.sessions, { version: 1, sessions });
+  return { version: 1, sessions };
+}
+
 export function exportSessionsJSON() {
   return JSON.stringify(loadSessions(), null, 2);
 }
 
 export function downloadJSON(filename, obj) {
   const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+/** Dispara o download de um .xlsx gerado em memória (js/xlsx.js). */
+export function downloadXlsx(filename, sessions) {
+  const bytes = buildXlsx(sessions);
+  const blob = new Blob([bytes], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

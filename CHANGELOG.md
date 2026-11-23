@@ -18,6 +18,56 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.9.0] - 22/11/2026
+### Added
+- **Exportação .xlsx nativa** (zero dependências): novo `js/xlsx.js`
+  gera ZIP store + OOXML mínimo (`crc32`, `zipStore`, `buildXlsx`) com
+  colunas Sessão/Data/Hora/Atleta/Raia/Série/Estilo/Distância/Repetições/
+  Séries/Descanso/Intervalo/Tempos; `store.downloadXlsx` dispara o download
+- **Modal de exportação** (`#exportDialog`): lista as sessões salvas
+  (nome, data/hora, nº de registros), `savedCount` no cabeçalho, botão
+  Baixar .xlsx e **✕ por linha** que apaga a sessão (com `confirmAction`);
+  JSON saiu da exportação (substituído pelo .xlsx)
+- **Kebab em 3 telas** (config, resumo, cronômetro) com apenas 4 ícones:
+  som 🔔/🔕 · ajuda ❓ · exportar 📊 · limpar 🧹 — wrapper `.kebab`
+  ancora o painel horizontal de 48px só-ícone; itens usam `data-action`
+  com dispatch por delegação; controlador genérico (toggle/click-fora/Esc)
+- **`clearChoices`**: ícone 🧹 limpa as escolhas da tela de config
+  (campos → `DEFAULT_CONFIG`, atletas desmarcados, volta ao passo 1);
+  fora da config mostra toast "Disponível na tela de configuração.";
+  registro de atletas e histórico intactos
+- **Alinhamento dos dois cronômetros** (`alignDisplays` em `js/ui.js`):
+  Sessão contínua e card mestre dividem o delta de centros entre palco e
+  mestre com clamp conjunto (`s ∈ [max(-roomL, tMin+δ), min(roomR, tMax+δ)]`
+  e `t = s − δ`) — clamp só do mestre quebrava a centrização (Δ=21.6px);
+  gatilhos: `showScreen("chrono")` + `ResizeObserver`
+- **Config em 100dvh**: `#screen-config` com `overflow:hidden` e
+  `.config-main` como única área rolável; compactação de margens/paddings
+  (`.card`, `.steps`, `.config-nav`, `.field`, `.hint`) — a página não rola
+- **`user-select:none`** no modal do cronômetro (+ `touch-callout:none`
+  no Parar): o long-press ≥3s não dispara seleção/copiar nativa; inputs
+  continuam selecionáveis (regra autor)
+- Testes: `logic.mjs` +11 checks de xlsx (magic `PK`, workbook, escape
+  XML, `crc32("123456789")===0xCBF43926`, contagem de `<row`); E2E +33
+  checks (config scroll, kebabs 4 itens nas 3 telas, alinhamento ≤2px,
+  userSelect, clearChoices, fluxo export/exclusão) → **86 PASS**
+
+### Changed
+- Rodapé da config (`.config-footer` com Exportar/Limpar histórico)
+  **removido** — as ações migraram para o kebab; `savedCount` vive só no
+  cabeçalho do modal de exportação
+- `#helpBtn` (config) e `#helpBtnSummary` (resumo) substituídos pelo kebab
+- Kebab do cronômetro: itens agora são só-ícone (48px), sem rótulo de
+  estado `.kebab-state`; `setSoundOn` atualiza todos `[data-action="sound"]`
+- `handleGamepadAction`/`currentDialog` tratam `exportDialog` aberto
+  (cancel/confirm/primary/ajuda → fecha)
+- `sw.js` `VERSION` → `cronobase-v4` (+ `js/xlsx.js` no CORE);
+  `APP_VERSION`/`package.json` → `0.9.0`
+
+### Removed
+- `exportHistory` (JSON) e `clearHistory` (apagar tudo sem seleção) —
+  substituídos por export .xlsx e exclusão por linha
+
 ## [v0.8.1] - 22/11/2026
 ### Fixed
 - **Botão Parar sumia com o drag aplicado** (posições salvas em
