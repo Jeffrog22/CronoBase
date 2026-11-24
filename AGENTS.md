@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 22/11/2026 — Kebab 4 ícones, export .xlsx, alinhamento, config 100dvh (v0.9.0) -->
+﻿<!-- última-sessão: 23/11/2026 — Drums no passo 2, topbar enxuta, select de tema .72rem (v0.10.0) -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.9.0
+- **Versão atual:** v0.10.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -49,6 +49,7 @@ Regras:
 |---------|--------|
 | `index.html` | App de página única — 3 telas (config, cronômetro, resumo) + diálogos |
 | `js/motor` → `js/modo2.js` | Regras do Modo 2 (lógica pura, testável em Node) |
+| `js/drum.js` | Drums/slot machines do passo 2 (scroll-snap + teclado) — v0.10.0 |
 | `js/xlsx.js` | Gerador .xlsx puro (crc32 + ZIP store + OOXML) — v0.9.0 |
 | `js/state.js` | Estado singleton da sessão, `DEFAULT_CONFIG`, `uid` |
 | `js/ui.js` | Camada de renderização (única que toca o DOM de dados) + `showScreen` (abre/fecha o `<dialog>` do cronômetro) |
@@ -87,6 +88,8 @@ Regras:
 - **Exportação .xlsx (v0.9.0)**: `js/xlsx.js` é ZIP **store** (método 0) + OOXML mínimo, sem deps; `buildXlsx(sessions)` → `Uint8Array`; `store.downloadXlsx` faz Blob+`<a download>`. Modal `#exportDialog` lista sessões; ✕ por linha → `confirmAction` → `store.deleteSession` (histórico local); `savedCount` só existe no cabeçalho desse modal. JSON **não** é mais opção de export.
 - **`clearChoices` só na config (v0.9.0)**: fora de `state.screen === "config"` emite toast e não altera nada; limpa `config → DEFAULT_CONFIG`, `selectedAtletas = []`, `step = 1`, input `novoAtleta` — **não** toca em `state.atletas` (registro) nem no histórico.
 - **Config 100dvh (v0.9.0)**: `#screen-config { height:100dvh; overflow:hidden }` e só `.config-main` rola (`min-height:0; overflow-y:auto`); o rodapé sticky (6rem) foi removido. E2E valida `documentElement.scrollHeight ≤ innerHeight`.
+- **Drums do passo 2 (v0.10.0)**: `js/drum.js` cria 4 wheels `scroll-snap` sobre `<input type="hidden">` com os **mesmos ids antigos** (`cfgRepeticoes`/`cfgDescanso`/`cfgSeries`/`cfgIntervalo`) — `syncConfigFromInputs`, listeners de `change` e `renderConfig` (que chama `syncDrums()`) não mudaram de contrato. **`ITEM_H = 40` em drum.js precisa bater com a altura de `.drum-item`/padding/banda no CSS** (assimetria: `clientHeight` do scroll é 118 por causa da borda do `.drum` → o snap do browser para em `i*40+1`; o E2E mede o centramento por retângulos, não por `scrollTop`). Commits de scroll **só após interação real** (`pointerdown`/`wheel` + janela idle de 300ms renovada a cada scroll) — sem isso, artefatos de layout/snap disparavam `change` e corrompiam `state.config` no meio do treino (matava o descanso do E2E). Grade garantida por `snapConfig`/`CONFIG_GRIDS` (state.js): reps/séries passo 1 (1 = "única"), descanso/intervalo múltiplos de 10, aplicado no load e no sync — `DEFAULT_CONFIG` (30/60) já está na grade. **Não re-tornar esses campos `<input type=number>`.**
+- **Select de tema compacto + topbar 52px (v0.10.0)**: regra por **id** (`#themeSelect, #themeSelectChrono, #themeSelectSummary`) vence `.select`/`.select-sm`/`.chrono-header .select-sm` → fonte `.72rem`, altura 34px, largura auto; `option { font-size: .95rem/.85rem }` explícito mantém o **popup** nativo no tamanho de antes (no desktop Chromium o dropdown herda a fonte do select). Topbar: padding `.35rem` + `.topbar .kebab-btn` 40px (vence pool `56px` por especificidade `0,2,0`) → **topbar de 75px → 52px**; itens do painel do kebab seguem 48px. Kebab do ⋮ abaixo dos 56px do PRD é escolha do usuário. `alignDisplays()` usa o rect do select do cronômetro — encolher só afrouxa o clamp (Δ=0.0 no E2E).
 
 ---
 
@@ -622,4 +625,43 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (12 módulos, inclui `js/xlsx.js`)
 - `npm test`: **56/56 lógica + 86/86 E2E** — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 23/11/2026 — Drums no passo 2, select de tema compacto, topbar 52px (v0.10.0)
+
+### O que foi feito
+- **Drum/Slot Machine Picker no passo 2**: `js/drum.js` (novo) substitui os 4 `<input type="number">` por wheels `scroll-snap` com banda central, fade de bordas e teclado (`role="spinbutton"`, ↑/↓/Page/Home/End); cada wheel controla um `<input type="hidden">` **com o id antigo** — `syncConfigFromInputs`, listeners de `change` e `renderConfig` (agora chama `syncDrums()`) sem mudança de contrato. Grades: Repetições 1–20 e Séries 1–10 passo 1 (**1 = "única"** nos dois), Descanso 0–600 e Intervalo 0–1800 passo 10 (rótulos `30 s`)
+- **`snapConfig`/`CONFIG_GRIDS`** (`js/state.js`): clamp + arredondamento na grade no load e no sync — descanso legado 35 vira 40; `DEFAULT_CONFIG` (30/60) já estava na grade (nenhum default mudou)
+- **Guarda anti-corrupção**: commits de scroll só após interação real (`pointerdown`/`wheel`, janela idle de 300ms renovada a cada scroll) — sem isso, eventos de scroll de layout/snap gravavam `state.config` no meio do treino e o E2E perdia o descanso
+- **Select de tema compacto nas 3 telas**: regra por id (`.72rem`, 34px, largura auto) vence `.select`/`.select-sm`/`.chrono-header .select-sm`; `option { font-size }` explícito (`.95rem`/`.85rem`) mantém o popup nativo no tamanho anterior
+- **Topbar enxuta (config + resumo)**: padding `.6rem→.35rem` + `.topbar .kebab-btn` 48→40px (pool 56→40; itens do painel continuam 48px) → **75px → 52px**
+- `sw.js` → `cronobase-v5` (+ `js/drum.js` no CORE); `APP_VERSION`/`package.json` → 0.10.0; `check` inclui `js/drum.js` (13 módulos)
+- **Fix visual**: a banda `position:absolute` tapava o valor central (positivos pintam acima do fluxo) → `.drum-scroll { position:relative; z-index:1 }`, fades `z-index:2`
+- E2E +15 checks (fonte/popup/altura do select, topbar ≤60px, 4 drums, centramento do wheel por retângulos Δ≤2px, teclado gravando no estado, grade de 10) → **101 PASS**; screenshots CDP (500×860 e 800×400) validam o visual dos 4 drums e a topbar
+
+### Decisões
+- Wheel custom em vez de `<select>` nativo (pedido explícito de slot machine); id antigo no hidden input para não tocar em main/ui
+- Setas do teclado no padrão listbox: ↑ = valor anterior, ↓ = próximo
+- Valores fora da grade são arredondados no load (decisão do usuário: 0,10,20…)
+- Select de tema e ⋮ do topbar abaixo do alvo de toque ≥56px do PRD: pedido explícito de redução
+- `scrollTop` bruto não serve de asserção (snap do browser para em `i*40+1` por causa da borda) — E2E mede centramento por retângulos
+
+### Arquivos
+- `js/drum.js` (novo)
+- `index.html`
+- `styles/app.css`
+- `js/state.js`
+- `js/ui.js`
+- `js/main.js`
+- `sw.js`
+- `package.json`
+- `tests/e2e-checks.js`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (13 módulos, inclui `js/drum.js`)
+- `npm test`: **56/56 lógica + 101/101 E2E** — verde
 - Não há backend (app 100% estática)

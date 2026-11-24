@@ -7,13 +7,7 @@ carregar .csv
 
 
 
-
-
-k
+modos, beira de piscina + alto contraste
 
 
 
-ebab menu icones de som e controle
-ajuste e centralização dos cronometros
-zerar 3z hold dispara msg do navegador de copiar/recortar, seleção
-verificar exportação pra .xlsx

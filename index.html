@@ -85,24 +85,28 @@
         <div class="card step-panel" id="stepPanel2">
           <h1 class="card-title">Séries e descanso</h1>
           <div class="field-row">
-            <label class="field">
-              <span class="field-label">Repetições</span>
-              <input type="number" id="cfgRepeticoes" class="input" min="1" max="20" step="1" />
-            </label>
-            <label class="field">
-              <span class="field-label">Descanso (s)</span>
-              <input type="number" id="cfgDescanso" class="input" min="0" max="600" step="1" />
-            </label>
+            <div class="field">
+              <span class="field-label" id="lblRepeticoes">Repetições</span>
+              <div class="drum" id="drumRepeticoes" data-input="cfgRepeticoes" role="spinbutton" tabindex="0" aria-labelledby="lblRepeticoes" aria-valuemin="1" aria-valuemax="20" aria-valuenow="4"></div>
+              <input type="hidden" id="cfgRepeticoes" value="4" />
+            </div>
+            <div class="field">
+              <span class="field-label" id="lblDescanso">Descanso (s)</span>
+              <div class="drum" id="drumDescanso" data-input="cfgDescanso" role="spinbutton" tabindex="0" aria-labelledby="lblDescanso" aria-valuemin="0" aria-valuemax="600" aria-valuenow="30"></div>
+              <input type="hidden" id="cfgDescanso" value="30" />
+            </div>
           </div>
           <div class="field-row">
-            <label class="field">
-              <span class="field-label">Séries</span>
-              <input type="number" id="cfgSeries" class="input" min="1" max="10" step="1" />
-            </label>
-            <label class="field">
-              <span class="field-label">Intervalo entre séries (s)</span>
-              <input type="number" id="cfgIntervalo" class="input" min="0" max="1800" step="1" />
-            </label>
+            <div class="field">
+              <span class="field-label" id="lblSeries">Séries</span>
+              <div class="drum" id="drumSeries" data-input="cfgSeries" role="spinbutton" tabindex="0" aria-labelledby="lblSeries" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1"></div>
+              <input type="hidden" id="cfgSeries" value="1" />
+            </div>
+            <div class="field">
+              <span class="field-label" id="lblIntervalo">Intervalo entre séries (s)</span>
+              <div class="drum" id="drumIntervalo" data-input="cfgIntervalo" role="spinbutton" tabindex="0" aria-labelledby="lblIntervalo" aria-valuemin="0" aria-valuemax="1800" aria-valuenow="60"></div>
+              <input type="hidden" id="cfgIntervalo" value="60" />
+            </div>
           </div>
           <p class="hint">
             Descanso e intervalo são medidos em relógio real (wall-clock): continuam corretos

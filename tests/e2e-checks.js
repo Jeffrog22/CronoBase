@@ -47,6 +47,15 @@ async function run() {
     $("kebabBtnCfg").click();
     check($("kebabPanelCfg").hidden, "kebab da config fecha no toggle");
 
+    // 0.5 Tema compacto + topbar enxuta (v0.10.0)
+    const themeFs = parseFloat(getComputedStyle($("themeSelect")).fontSize);
+    check(themeFs <= 12.5, `select de tema com fonte reduzida [font=${themeFs}px]`);
+    check($("themeSelect").offsetHeight <= 40, `caixa do select de tema enxuta [h=${$("themeSelect").offsetHeight}px]`);
+    const optFs = parseFloat(getComputedStyle($("themeSelect").querySelector("option")).fontSize);
+    check(optFs >= 14, `popup do select mantém a fonte atual [option=${optFs}px]`);
+    const topbarH = document.querySelector("#screen-config .topbar").offsetHeight;
+    check(topbarH <= 60, `topbar da config enxuta [h=${topbarH}px]`);
+
     // 1. Config: adicionar atleta e iniciar treino
     $("novoAtleta").value = "Ana";
     $("addAtletaBtn").click();
@@ -56,6 +65,35 @@ async function run() {
     check(document.querySelectorAll("#atletasList .atleta-item.selected").length === 2, "atletas selecionados por padrão");
 
     $("nextStepBtn").click(); // → passo 2
+    // 1.2 Drums / slot machine do passo 2 (v0.10.0)
+    const drumsN = document.querySelectorAll("#stepPanel2 .drum").length;
+    check(drumsN === 4, `passo 2 com 4 drums [n=${drumsN}]`);
+    check($("drumRepeticoes").getAttribute("aria-valuenow") === "4", "drum de reps na posição 4");
+    const centerRep = $("drumRepeticoes").querySelector(".drum-item.center");
+    check(Boolean(centerRep) && centerRep.textContent === "4", "item central do drum de reps = 4");
+    await sleep(80); // deixa o snap do browser assentar
+    const rsRep = $("drumRepeticoes").querySelector(".drum-scroll");
+    const rBox = rsRep.getBoundingClientRect();
+    const rItem = $("drumRepeticoes").querySelector(".drum-item.center").getBoundingClientRect();
+    const dCenter = Math.abs(rItem.top + rItem.height / 2 - (rBox.top + rBox.height / 2));
+    check(
+      dCenter <= 2,
+      `wheel de reps centrado em 4 [Δ=${dCenter.toFixed(1)}px scrollTop=${rsRep.scrollTop}]`
+    );
+    check($("drumSeries").querySelector(".drum-item.center").textContent === "única", "séries começa em 'única'");
+    check(Number($("cfgDescanso").value) % 10 === 0, `descanso na grade de 10 [v=${$("cfgDescanso").value}]`);
+    check(Number($("cfgIntervalo").value) % 10 === 0, `intervalo na grade de 10 [v=${$("cfgIntervalo").value}]`);
+    $("drumRepeticoes").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    check($("cfgRepeticoes").value === "5", `teclado no drum muda o valor [v=${$("cfgRepeticoes").value}]`);
+    check(window.cronobase.state.config.repeticoes === 5, "drum grava no estado via change");
+    $("drumDescanso").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    check(window.cronobase.state.config.descanso === 40, "descanso avança de 10 em 10");
+    $("drumRepeticoes").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    $("drumDescanso").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    check(
+      window.cronobase.state.config.repeticoes === 4 && window.cronobase.state.config.descanso === 30,
+      "drums restaurados (4 reps / 30 s) para o restante do fluxo"
+    );
     $("nextStepBtn").click(); // → passo 3
     check($("stepPanel3").classList.contains("active"), "navegação de passos");
     $("startWorkoutBtn").click();
@@ -202,12 +240,17 @@ async function run() {
     // 4. Parar → descanso (Modo 2, 50 m)
     $("stopBtn").click();
     const rest = window.cronobase.state.raias.find((r) => r.waiting);
-    check(Boolean(rest), "Parar iniciou descanso");
+    check(
+      Boolean(rest),
+      `Parar iniciou descanso [reps=${window.cronobase.state.config.repeticoes} desc=${window.cronobase.state.config.descanso} waiting=${window.cronobase.state.raias.map((r) => (r.waiting ? 1 : 0)).join("")} done=${window.cronobase.state.raias.map((r) => (r.done ? 1 : 0)).join("")}]`
+    );
     check(!$("stopBtn").disabled, "Parar pausado habilitado com dados (long-press possível)");
-    const row = document.querySelector('#chronoList .raia[data-id="' + rest.atletaId + '"]');
-    check(row.classList.contains("resting"), "linha do descanso marcada visualmente");
-    check(row.querySelector(".raia-tag").textContent.includes("Descanso"), "tag de Descanso visível");
-    check(window.cronobase.state.selectedId !== rest.atletaId, "seleção avançou para próximo atleta");
+    if (rest) {
+      const row = document.querySelector('#chronoList .raia[data-id="' + rest.atletaId + '"]');
+      check(row.classList.contains("resting"), "linha do descanso marcada visualmente");
+      check(row.querySelector(".raia-tag").textContent.includes("Descanso"), "tag de Descanso visível");
+      check(window.cronobase.state.selectedId !== rest.atletaId, "seleção avançou para próximo atleta");
+    }
 
     // 5. Resumo + Salvar (com confirmação) → localStorage
     $("summaryBtn").click();

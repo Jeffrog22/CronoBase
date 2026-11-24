@@ -14,7 +14,30 @@ export const DEFAULT_CONFIG = {
 export const ESTILOS = ["Crawl", "Costas", "Peito", "Medley", "Livre", "Outro"];
 export const DISTANCIAS = [25, 50, 75, 100, 150, 200, 400];
 
-export const APP_VERSION = "0.9.0";
+export const APP_VERSION = "0.10.0";
+
+/** Grades dos drums do passo 2 (v0.10.0): reps/séries passo 1,
+ *  descanso/intervalo múltiplos de 10. Usado no load e no sync. */
+export const CONFIG_GRIDS = {
+  repeticoes: { min: 1, max: 20, step: 1, fallback: DEFAULT_CONFIG.repeticoes },
+  descanso: { min: 0, max: 600, step: 10, fallback: DEFAULT_CONFIG.descanso },
+  series: { min: 1, max: 10, step: 1, fallback: DEFAULT_CONFIG.series },
+  intervalo: { min: 0, max: 1800, step: 10, fallback: DEFAULT_CONFIG.intervalo },
+};
+
+/** Encaixa os 4 campos numéricos na grade (clamp + arredonda p/ o passo
+ *  mais próximo). Valores inválidos voltam ao default. */
+export function snapConfig(c) {
+  for (const key of Object.keys(CONFIG_GRIDS)) {
+    const g = CONFIG_GRIDS[key];
+    const n = Number(c[key]);
+    if (!Number.isFinite(n)) {
+      c[key] = g.fallback;
+      continue;
+    }
+    c[key] = Math.min(g.max, Math.max(g.min, Math.round(n / g.step) * g.step));
+  }
+}
 
 /** Singleton do estado da sessão (mantido em memória durante a sessão). */
 export const state = {

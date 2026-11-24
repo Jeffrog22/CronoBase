@@ -18,6 +18,44 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Removed
 - (funcionalidades removidas)
 
+## [v0.10.0] - 23/11/2026
+### Added
+- **Drum / Slot Machine Picker no passo 2** (Séries e descanso): novo
+  `js/drum.js` com 4 wheels `scroll-snap` (banda central, fade de bordas,
+  `role="spinbutton"` + teclado ↑/↓/Page/Home/End) substituindo os inputs
+  numéricos — Repetições 1–20 e Séries 1–10 passo 1 (**1 = "única"**),
+  Descanso 0–600 e Intervalo 0–1800 passo 10 (rótulos `30 s`, `60 s`…)
+- Cada wheel envolve um `<input type="hidden">` com o **mesmo id** antigo:
+  `syncConfigFromInputs`, os listeners de `change` e `renderConfig`
+  continuam intactos; o drum só grava `value` e dispara `change`
+- `snapConfig`/`CONFIG_GRIDS` em `js/state.js`: clamp + arredondamento na
+  grade (passo 1 / múltiplos de 10) aplicado no load (valores legados
+  fora da grade, ex.: descanso 35 → 40) e em todo sync
+- Commits de scroll só ocorrem após interação real (pointer/wheel com
+  janela idle de 300ms) — artefatos de layout/snap programático não
+  alteram o estado
+
+### Changed
+- **Select de tema compacto nas 3 telas** (config, cronômetro, resumo):
+  fonte `.72rem`, caixa 34px (antes `.95rem`/56px), largura automática —
+  só a caixa fechada; o popup nativo mantém o tamanho atual via
+  `option { font-size }` explícito (`.95rem`/`.85rem`)
+- **Topbar da config/resumo enxuta**: padding `0.6rem → 0.35rem` e kebab ⋮
+  `48 → 40px` (56 → 40 no pool) — altura caiu de ~75px para **52px**
+  (itens do painel do kebab seguem em 48px)
+- `sw.js` `VERSION → cronobase-v5` + `js/drum.js` no CORE; `APP_VERSION`
+  e `package.json` → 0.10.0
+
+### Fixed
+- Banda do drum tapava o valor central (elemento `position:absolute`
+  pintava acima do conteúdo): `.drum-scroll` ganhou `position:relative;
+  z-index:1` e os fades `z-index:2`
+
+### Tests
+- `npm run check` com 13 módulos (inclui `js/drum.js`); E2E +15 checks
+  (select/fonte/popup/topbar, 4 drums, centro do wheel Δ≤2px, teclado
+  gravando no estado, grade de 10) → **56 lógica + 101 E2E PASS**
+
 ## [v0.9.0] - 22/11/2026
 ### Added
 - **Exportação .xlsx nativa** (zero dependências): novo `js/xlsx.js`

@@ -5,6 +5,7 @@ import { msToDisplay, secondsLeft } from "./clock.js";
 import { THEME_OPTIONS } from "./themes.js";
 import { GP_MAP } from "./gamepad.js";
 import { sessionSummary, APP_VERSION } from "./state.js";
+import { syncDrums } from "./drum.js";
 import { haptic } from "./wake.js";
 
 export const els = {};
@@ -578,6 +579,7 @@ export function renderConfig(state, savedCount) {
   els.cfgDescanso.value = String(state.config.descanso);
   els.cfgSeries.value = String(state.config.series);
   els.cfgIntervalo.value = String(state.config.intervalo);
+  syncDrums(); // wheels do passo 2 acompanham o estado
   els.distHint.hidden = state.config.distancia >= 50;
 
   els.savedCount.textContent =

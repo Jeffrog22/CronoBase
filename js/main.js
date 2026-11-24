@@ -1,6 +1,6 @@
 // Bootstrap e orquestração do CronoBase.
 
-import { state, DEFAULT_CONFIG, ESTILOS, DISTANCIAS, createSession, uid, sessionSummary } from "./state.js";
+import { state, DEFAULT_CONFIG, ESTILOS, DISTANCIAS, createSession, uid, sessionSummary, snapConfig } from "./state.js";
 import { createTicker, msToDisplay } from "./clock.js";
 import {
   setHooks, startMaster, stopMaster, resetMaster, recordSplit, recordFinal,
@@ -14,6 +14,7 @@ import {
 import { applyTheme, getTheme } from "./themes.js";
 import { requestWake, releaseWake, haptic, setActiveCheck } from "./wake.js";
 import { initGamepad } from "./gamepad.js";
+import { initDrums } from "./drum.js";
 import * as ui from "./ui.js";
 
 const session = {
@@ -60,10 +61,12 @@ function syncConfigFromInputs() {
   c.nome = ui.els.cfgNome.value.trim().slice(0, 60);
   c.estilo = ui.els.cfgEstilo.value;
   c.distancia = clamp(ui.els.cfgDistancia.value, 25, 400, 50);
-  c.repeticoes = clamp(ui.els.cfgRepeticoes.value, 1, 20, 4);
-  c.descanso = clamp(ui.els.cfgDescanso.value, 0, 600, 30);
-  c.series = clamp(ui.els.cfgSeries.value, 1, 10, 1);
-  c.intervalo = clamp(ui.els.cfgIntervalo.value, 0, 1800, 60);
+  // Reps/séries/descanso/intervalo: grade dos drums (passo 1 / múltiplos de 10).
+  c.repeticoes = ui.els.cfgRepeticoes.value;
+  c.descanso = ui.els.cfgDescanso.value;
+  c.series = ui.els.cfgSeries.value;
+  c.intervalo = ui.els.cfgIntervalo.value;
+  snapConfig(c);
 }
 
 function gotoStep(step) {
@@ -495,6 +498,7 @@ function guardBeforeUnload(e) {
 
 function init() {
   ui.initUI();
+  initDrums(); // wheels do passo 2 (antes do 1º renderConfig)
 
   // Tema inicial.
   setTheme(getTheme());
@@ -518,6 +522,7 @@ function init() {
   // Estado persistido.
   const savedCfg = loadConfig();
   if (savedCfg) Object.assign(state.config, DEFAULT_CONFIG, savedCfg);
+  snapConfig(state.config); // valores legados fora da grade dos drums
   state.atletas = loadAtletas();
   session.soundOn = loadSound();
   ui.setSoundOn(session.soundOn);
