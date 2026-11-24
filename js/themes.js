@@ -6,7 +6,7 @@ export const THEMES = new Set(["normal", "night", "pool"]);
 export const THEME_OPTIONS = [
   { id: "normal", label: "Normal" },
   { id: "night", label: "Noturna" },
-  { id: "pool", label: "Beira de piscina" },
+  { id: "pool", label: "Solar" },
 ];
 
 export function applyTheme(theme) {

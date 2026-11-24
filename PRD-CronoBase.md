@@ -4,7 +4,7 @@
 
 ## Missão
 
-Construa um PWA independente contendo somente o cronômetro de treino derivado de **PBTracker / SwimBase / Treino / Modo 2 — Tempo/Parcial**, com controle **GameSir X5 Lite** e três temas: **Normal**, **Noturna** e **Beira de piscina**.
+Construa um PWA independente contendo somente o cronômetro de treino derivado de **PBTracker / SwimBase / Treino / Modo 2 — Tempo/Parcial**, com controle **GameSir X5 Lite** e três temas: **Normal**, **Noturna** e **Solar**.
 
 O projeto-fonte está em `C:\Users\HP\Desktop\PBSwimTrack`. Antes de codificar, leia `AGENTS.md`, `ARCHITECTURE.md`, `PDR-SwimBase.md`, `swimbase.js`, `app.js`, `index.html` e `styles.css`. A identidade visual completa está no arquivo fornecido pelo usuário `C:\Users\HP\Desktop\app\gaveta\identidade visual Fizapp.txt`. Use esses materiais como referência; este documento define o novo destino independente.
 
@@ -127,11 +127,12 @@ Consulte o arquivo de identidade visual completo. Aplicar, no mínimo:
 - Fundo `#030712`, topo `#111827`, cards `#1f2937`, campos `#374151`, texto `#f3f4f6` / `#d1d5db`, bordas `#374151`; azul acessível `#60a5fa`.
 - Seletor de tema continua legível no cronômetro e as cores de alerta não podem sumir no dark.
 
-### Tema Beira de piscina
+### Tema Solar (alto contraste)
 
 - Tema operacional de luz forte, distinto do noturno: superfícies claras, contraste muito alto, texto escuro, fundos sólidos, bordas fortes e azul primário intenso. Evite transparências, sombras pesadas, texto cinza pálido e indicadores baseados apenas em cor.
 - Aumente escala do relógio e dos botões principais; alvos de toque recomendados ≥56 px; mantenha iniciar/parar/split sempre visíveis. Alertas de descanso e estado devem ter texto explícito e diferenciação visual clara.
 - Desative animações não essenciais/reduza movimento; mantenha feedback de estado perceptível.
+- Paleta Solar: fundo `#FFFFFF`, superfície `#F2F6FA`, bordas/texto secundário navy `#001B44`, primária cobalto `#0038A8`, descanso/ativo Amarelo Volt `#D4FF00`, alerta/Parar laranja-boia `#E63900` com texto preto. Id interno segue `pool`.
 
 Use tokens CSS e `data-theme` na raiz. Exemplo pronto para integrar:
 
@@ -156,10 +157,11 @@ Use tokens CSS e `data-theme` na raiz. Exemplo pronto para integrar:
 }
 [data-theme="pool"] {
   color-scheme: light;
-  --bg: #fff; --surface: #fff; --surface-2: #eff6ff;
-  --text: #111827; --muted: #1f2937; --border: #1f2937;
-  --blue: #1d4ed8; --blue-hover: #1e3a8a;
-  --success: #166534; --danger: #b91c1c; --warning: #92400e;
+  --bg: #fff; --surface: #f2f6fa; --surface-2: #e4ecf5;
+  --text: #000; --muted: #001b44; --border: #001b44;
+  --blue: #0038a8; --blue-hover: #001b44; --blue-soft: #d4ff00;
+  --success: #166534; --danger: #e63900; --warning: #001b44;
+  --warning-soft: #d4ff00;
   --radius-card: 8px; --touch: 60px;
 }
 body { margin: 0; background: var(--bg); color: var(--text); }
@@ -184,7 +186,7 @@ function applyTheme(theme) {
 applyTheme(localStorage.getItem("fizapp_timer_theme") || "normal");
 ```
 
-Garanta seletor acessível com nomes visíveis “Normal”, “Noturna”, “Beira de piscina”. Trocar tema durante sessão não reinicia relógios, tempos ou seleções.
+Garanta seletor acessível com nomes visíveis “Normal”, “Noturna”, “Solar”. Trocar tema durante sessão não reinicia relógios, tempos ou seleções.
 
 ## Interface e fluxo
 
@@ -230,8 +232,8 @@ Use português brasileiro. Layout mobile/tablet-first, com safe areas de iPhone,
 - Séries, repetições, rollover e conclusão preservam os registros e ordem correta.
 - Salvar persiste; cancelar descarta; erro de armazenamento conserva sessão editável.
 - GameSir edge/debounce/priming/desconexão não geram acionamentos repetidos ou fantasmas; nenhum botão fecha/destrói sessão sem confirmação.
-- Temas Normal, Noturna e Beira de piscina são selecionáveis, persistem e podem alternar durante a sessão sem alterar o estado dela.
-- Tema Beira de piscina tem contraste e alvos grandes; layout funciona em mobile e tablet.
+- Temas Normal, Noturna e Solar são selecionáveis, persistem e podem alternar durante a sessão sem alterar o estado dela.
+- Tema Solar tem contraste e alvos grandes; layout funciona em mobile e tablet.
 - PWA abre offline após carga inicial e não força reload durante sessão ativa.
 
 ## Nota sobre anexos e autoridade

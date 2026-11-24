@@ -94,6 +94,38 @@ async function run() {
       window.cronobase.state.config.repeticoes === 4 && window.cronobase.state.config.descanso === 30,
       "drums restaurados (4 reps / 30 s) para o restante do fluxo"
     );
+
+    // 1.3 Tema Solar (v0.11.0): rótulo + alto contraste nos drums
+    const themeOpts = [...$("themeSelect").options].map((o) => o.textContent);
+    check(
+      themeOpts.includes("Normal") && themeOpts.includes("Noturna") && themeOpts.includes("Solar"),
+      `opções de tema Normal/Noturna/Solar [${themeOpts.join(", ")}]`
+    );
+    $("themeSelect").value = "pool";
+    $("themeSelect").dispatchEvent(new Event("change"));
+    check(document.documentElement.dataset.theme === "pool", "tema Solar (id pool) aplicado");
+    check(
+      getComputedStyle(document.querySelector("#drumRepeticoes .drum-band")).backgroundColor === "rgb(212, 255, 0)",
+      "banda do drum em Amarelo Volt"
+    );
+    const centerStyle = getComputedStyle($("drumRepeticoes").querySelector(".drum-item.center"));
+    check(
+      centerStyle.color === "rgb(0, 0, 0)" && Number(centerStyle.fontWeight) >= 700,
+      `item central preto e bold [${centerStyle.color} w=${centerStyle.fontWeight}]`
+    );
+    const adjStyle = getComputedStyle($("drumRepeticoes").querySelector(".drum-item:not(.center)"));
+    check(
+      adjStyle.color === "rgb(74, 85, 104)" && parseFloat(adjStyle.opacity) === 1,
+      `item adjacente sólido sem transparência [${adjStyle.color} op=${adjStyle.opacity}]`
+    );
+    check(
+      getComputedStyle(document.querySelector("#screen-config .topbar .kebab-btn")).backgroundColor !== "",
+      "topbar renderiza no Solar"
+    );
+    $("themeSelect").value = "normal";
+    $("themeSelect").dispatchEvent(new Event("change"));
+    check(document.documentElement.dataset.theme === "normal", "tema normal restaurado");
+
     $("nextStepBtn").click(); // → passo 3
     check($("stepPanel3").classList.contains("active"), "navegação de passos");
     $("startWorkoutBtn").click();

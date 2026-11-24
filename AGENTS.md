@@ -1,4 +1,4 @@
-﻿<!-- última-sessão: 23/11/2026 — Drums no passo 2, topbar enxuta, select de tema .72rem (v0.10.0) -->
+﻿<!-- última-sessão: 23/11/2026 — Tema Solar (alto contraste), id pool mantido, sw v6, versão 0.11.0 -->
 # AGENTS.md — Histórico Completo do Projeto
 
 ## Regras de Ouro
@@ -35,7 +35,7 @@ Regras:
 - **Nome:** CronoBase
 - **Descrição:** Cronômetro de treino PWA (Modo 2) da Fizapp, com controle GameSir X5 Lite e três temas
 - **Repositório:** `https://github.com/Jeffrog22/CronoBase.git`
-- **Versão atual:** v0.10.0
+- **Versão atual:** v0.11.0
 - **Stack:** JavaScript ES modules puro (sem framework, sem build step), HTML5 + CSS3 (design tokens), PWA (manifest + service worker). Persistência: `localStorage`. **Não existe backend.**
 - **Deploy:** Cloudflare Pages (estático) — guia em `docs/DEPLOY-CLOUDFLARE.md`
 - **Testes:** `npm test` = `tests/logic.mjs` (motor em Node) + `tests/e2e-runner.mjs` (navegador headless)
@@ -664,4 +664,41 @@ Regras:
 ### Typecheck
 - `npm run check`: 0 erros (13 módulos, inclui `js/drum.js`)
 - `npm test`: **56/56 lógica + 101/101 E2E** — verde
+- Não há backend (app 100% estática)
+
+---
+
+## Sessão: 23/11/2026 — Tema "Beira de piscina" → "Solar" (alto contraste, v0.11.0)
+
+### O que foi feito
+- **Tema Solar** (`tokens.css` `[data-theme="pool"]`): fundo #FFFFFF puro, superfície #F2F6FA, bordas/texto secundário navy #001B44, primária cobalto #0038A8, descanso/ativo Amarelo Volt #D4FF00 (`--blue-soft` e `--warning-soft`), alerta/Parar laranja-boia #E63900 (`--danger` com texto #000), `--motion: 0` (sem animações sob sol forte)
+- `js/themes.js`: rótulo `Solar` em `THEME_OPTIONS` (id interno `pool` intacto, zero migração do localStorage)
+- `app.css` pool: bordas 2px #001B44, btn-font 800, `btn-danger` laranja + texto #000, `state-line.running` cobalto, `resting` volt/navy, `raia-tag` base cobalto (via `:not()`), `tag-alert` texto #000, `rest-count` volt com número #000, drums adjacentes #4A5568 opacidade 1 peso 500, centro #000 peso 700, banda com bordas cobalto 2px
+- `sw.js`: `cronobase-v5` → `cronobase-v6`
+- `APP_VERSION`/`package.json`: 0.10.0 → 0.11.0
+- `PRD-CronoBase.md` / `README.md`: nome visível "Solar"; seção "Tema Solar (alto contraste)" com paleta; id interno segue `pool`
+- E2E +7 checks (rótulos Normal/Noturna/Solar, aplicação do id pool, banda volt, item central preto/bold, adjacente sólido, topbar no Solar, restauração do tema normal) → **108 PASS**
+- Screenshots CDP (solar-portrait/landscape/chrono) confirmam visual Solar
+
+### Decisões
+- Id interno `pool` mantido (zero migração de localStorage); label visível passa a ser "Solar"
+- `.tag-alert` com texto `#000` sobre laranja #E63900 (4.95:1 AAA para texto grande)
+- `--motion: 0` / `animation:none` mantido no Solar (operação sob sol forte, sem animações)
+- PRD renomeado para "Solar" e paleta documentada
+
+### Arquivos
+- `styles/tokens.css`
+- `js/themes.js`
+- `styles/app.css`
+- `sw.js`
+- `js/state.js`
+- `package.json`
+- `PRD-CronoBase.md`
+- `README.md`
+- `CHANGELOG.md`
+- `AGENTS.md`
+
+### Typecheck
+- `npm run check`: 0 erros (13 módulos)
+- `npm test`: **56/56 lógica + 108/108 E2E** — verde
 - Não há backend (app 100% estática)

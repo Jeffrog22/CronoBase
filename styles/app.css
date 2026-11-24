@@ -1475,7 +1475,7 @@ code {
   font-size: 0.9rem;
 }
 
-/* ---------------- Tema "beira de piscina": operacional ---------------- */
+/* ---------------- Tema "Solar" (id pool): alto contraste operacional ---------------- */
 [data-theme="pool"] .card,
 [data-theme="pool"] .raia,
 [data-theme="pool"] .display {
@@ -1495,8 +1495,10 @@ code {
   border: 2px solid var(--border);
 }
 
+/* Laranja-boia com texto preto (4.95:1 — AAA para texto grande). */
 [data-theme="pool"] .btn-danger {
-  border: 2px solid #7f1d1d;
+  border: 2px solid #7a2000;
+  color: #000;
 }
 
 [data-theme="pool"] .btn-success {
@@ -1507,7 +1509,7 @@ code {
 [data-theme="pool"] .chrono-config,
 [data-theme="pool"] .field-label,
 [data-theme="pool"] .display-label {
-  color: #1f2937;
+  color: var(--muted);
   font-weight: 700;
 }
 
@@ -1522,6 +1524,58 @@ code {
 [data-theme="pool"] .raia.rest-alert,
 [data-theme="pool"] .raia.selected {
   animation: none;
+}
+
+/* Estados de treino: cobalto = nadando · volt = descanso/intervalo ·
+   laranja-boia = alerta ≤5s / finalizar (regra de ouro do Solar). */
+[data-theme="pool"] .state-line.running {
+  color: var(--blue);
+}
+
+[data-theme="pool"] .state-line.resting {
+  color: #000;
+  background: var(--blue-soft);
+}
+
+/* "Nadando"/"Pronto": sem classe → cobalto; .tag-rest/.tag-alert/.tag-done
+   ficam volt/laranja/verde (o :not() evita que esta regra os atropele). */
+[data-theme="pool"] .raia-tag:not(.tag-rest):not(.tag-alert):not(.tag-done) {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+
+/* Contagem do descanso em volt (número preto); laranja só no alerta. */
+[data-theme="pool"] .raia-clock.rest-count {
+  background: var(--blue-soft);
+  color: #000;
+}
+
+[data-theme="pool"] .raia-tag.tag-alert {
+  color: #000;
+}
+
+[data-theme="pool"] .toast.toast-error {
+  color: #000;
+}
+
+/* Drums: sem transparência sob o sol — adjacentes cinza sólido (500),
+   centro preto (700) sobre a banda volt com bordas cobalto de 2px. */
+[data-theme="pool"] .drum-item:not(.center) {
+  color: #4a5568;
+  opacity: 1;
+  font-weight: 500;
+}
+
+[data-theme="pool"] .drum-item.center {
+  color: #000;
+  opacity: 1;
+  font-weight: 700;
+}
+
+[data-theme="pool"] .drum-band {
+  border-top: 2px solid var(--blue);
+  border-bottom: 2px solid var(--blue);
 }
 
 /* ---------------- Modo paisagem ---------------- */

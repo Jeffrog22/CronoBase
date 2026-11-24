@@ -3,7 +3,7 @@
 // automático). A ativação só acontece quando a página pede, e a página só
 // pede quando não há sessão em andamento (ou o usuário confirma o risco).
 
-const VERSION = "cronobase-v5";
+const VERSION = "cronobase-v6";
 const CORE = [
   "./",
   "./index.html",

@@ -15,7 +15,7 @@ Cronômetro de treino **PWA (Modo 2)** da Fizapp — natação/treino em grupo c
 - **Regras do motor:** distância abaixo de 50 m nunca registra split; descanso/intervalo em wall-clock (sobrevive a suspensão da aba); liberação sincronizada quando faltam ≤10 s; rollover de séries preserva registros.
 - **Resumo e persistência:** Salvar grava no `localStorage` (até 50 sessões), Descartar descarta sem gravar nada, erro de armazenamento mantém a sessão editável. Exportar/Importar em JSON.
 - **GameSir X5 Lite:** mapeamento por borda (edge), debounce ~200 ms, priming ao conectar, detecção de desconexão silenciosa. Nenhum botão fecha ou destrói sessão sem confirmação.
-- **Três temas:** Normal, Noturna e Beira de piscina — troca durante a sessão sem alterar relógios, tempos nem seleções.
+- **Três temas:** Normal, Noturna e Solar — troca durante a sessão sem alterar relógios, tempos nem seleções.
 - **PWA offline:** service worker cacheia os assets; atualização nunca força reload com sessão não salva sem confirmação.
 - **Sem backend, sem conta:** tudo local, 100% no aparelho.
 

@@ -1,5 +1,5 @@
 /* Tokens do design system Fizapp traduzidos para custom properties CSS.
-   Temas: normal (padrão), night (noturna), pool (beira de piscina). */
+   Temas: normal (padrão), night (noturna), pool (Modo Solar — alto contraste). */
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -66,35 +66,39 @@
   --selected-ring: 0 0 0 3px rgb(96 165 250 / 0.45);
 }
 
+/* Modo Solar (id "pool", v0.11.0) — alto contraste sob sol forte:
+   branco puro, navy #001B44, cobalto #0038A8, volt #D4FF00 (descanso/ativo)
+   e laranja-boia #E63900 (Parar/alerta). --blue-soft/--warning-soft viram
+   volt: todo uso desses tokens é parado a texto navy/preto (nunca claro). */
 [data-theme="pool"] {
   color-scheme: light;
-  --blue: #1d4ed8;
-  --blue-hover: #1e3a8a;
-  --blue-soft: #dbeafe;
-  --blue-100: #bfdbfe;
-  --blue-400: #1d4ed8;
+  --blue: #0038a8;
+  --blue-hover: #001b44;
+  --blue-soft: #d4ff00;
+  --blue-100: #d4ff00;
+  --blue-400: #0038a8;
 
   --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #eff6ff;
-  --text: #111827;
+  --surface: #f2f6fa;
+  --surface-2: #e4ecf5;
+  --text: #000000;
   --text-strong: #000000;
-  --muted: #1f2937;
-  --border: #1f2937;
+  --muted: #001b44;
+  --border: #001b44;
 
   --success: #166534;
   --success-soft: #dcfce7;
-  --danger: #b91c1c;
-  --danger-soft: #fee2e2;
-  --warning: #92400e;
-  --warning-soft: #fef3c7;
+  --danger: #e63900;
+  --danger-soft: #ffe0d4;
+  --warning: #001b44;
+  --warning-soft: #d4ff00;
 
   --radius-card: 8px;
   --touch: 60px;
   --clock-size: 3rem;
   --master-size: 4.5rem;
   --shadow-card: none;
-  --selected-ring: 0 0 0 3px #1d4ed8;
+  --selected-ring: 0 0 0 3px #0038a8;
   --motion: 0;
 }
 

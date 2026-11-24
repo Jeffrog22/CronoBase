@@ -5,18 +5,31 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [Unreleased]
-### Added
-- (novas funcionalidades)
-
+## [v0.11.0] - 23/11/2026
 ### Changed
-- (mudanças em funcionalidades existentes)
-
-### Fixed
-- (correções de bugs)
-
-### Removed
-- (funcionalidades removidas)
+- **Tema "Beira de piscina" vira "Modo Solar" (alto contraste sob sol)**:
+  rótulo `Solar` em `THEME_OPTIONS` (id interno `pool` intacto, zero
+  migração do localStorage)
+- **Paleta Solar** (`tokens.css`): fundo `#FFFFFF` puro, superfície
+  `#F2F6FA`, bordas/texto secundário navy `#001B44`, primária cobalto
+  `#0038A8`, descanso/ativo em Amarelo Volt `#D4FF00` (`--blue-soft` e
+  `--warning-soft`), alerta/Parar em laranja-boia `#E63900`
+  (`--danger` + texto preto 4.95:1)
+- **Estados de treino por cor**: cobalto = nadando ("Nadando"/"Pronto"
+  em pill cobalto, `state-line.running` cobalto), volt = descanso
+  (linha em faixa volt, `rest-count` do countdown em volt com número
+  preto, `tag-rest` volt/navy), laranja = alerta ≤5s e Parar
+  (`.btn-danger`, `.tag-alert`, `.raia.rest-alert` com texto preto)
+- **Drums Solar sem transparência**: adjacentes cinza sólido `#4A5568`
+  peso 500, centro preto `#000` peso 700, banda volt com bordas cobalto
+  de 2px (topo/base)
+- Relógios já usam `tabular-nums` + monoespaçada (mestre, contínuo,
+  raias, resumo) — sem mudança; regra de ouro mantida
+- `sw.js` → `cronobase-v6`; `APP_VERSION`/`package.json` → 0.11.0
+- E2E +7 checks (rótulos Normal/Noturna/Solar, aplicação do id `pool`,
+  banda volt, item central preto/bold, adjacente sólido, topbar no
+  Solar, restauração do tema normal) → **108 PASS**
+- Docs: `README.md` e `PRD-CronoBase.md` com o nome visível "Solar"
 
 ## [v0.10.0] - 23/11/2026
 ### Added

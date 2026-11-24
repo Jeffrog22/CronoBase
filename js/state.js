@@ -14,7 +14,7 @@ export const DEFAULT_CONFIG = {
 export const ESTILOS = ["Crawl", "Costas", "Peito", "Medley", "Livre", "Outro"];
 export const DISTANCIAS = [25, 50, 75, 100, 150, 200, 400];
 
-export const APP_VERSION = "0.10.0";
+export const APP_VERSION = "0.11.0";
 
 /** Grades dos drums do passo 2 (v0.10.0): reps/séries passo 1,
  *  descanso/intervalo múltiplos de 10. Usado no load e no sync. */
